@@ -1,0 +1,49 @@
+# Correctness gates. These run without an API key, so every push is checked
+# for free and in seconds.
+#
+# This is deliberately the same `make check` a learner runs locally. A CI gate
+# that tests something different from what people run on their machines teaches
+# them to distrust it.
+#
+# L6 extends this file with the eval regression suite. The shape stays the same.
+
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the minimum needed for the gates
+        # Deliberately not the full requirements.txt. The gates must not depend
+        # on the agent runtime, or a broken SDK release would block a policy fix.
+        run: pip install "PyYAML>=6.0"
+
+      - name: Build the world and run every gate
+        run: make check
+
+      - name: Assert the world is byte-reproducible
+        # Rebuild and confirm the hash is unchanged. Catches any accidental
+        # dependence on the system clock, dict ordering, or an unseeded RNG.
+        run: |
+          BEFORE=$(python3 -c "import json;print(json.load(open('data/world/world_stats.json'))['sha256'])")
+          make world >/dev/null
+          AFTER=$(python3 -c "import json;print(json.load(open('data/world/world_stats.json'))['sha256'])")
+          echo "before: $BEFORE"
+          echo "after:  $AFTER"
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "::error::World generation is not deterministic. Expected outcomes will drift."
+            exit 1
+          fi
+          echo "world is byte-reproducible"
