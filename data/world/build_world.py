@@ -183,6 +183,11 @@ def build(facts: dict) -> dict:
     conn.executemany("INSERT INTO customers VALUES (?,?,?,?,?,?)", customers)
 
     # --- products ----------------------------------------------------------
+    # Built as dicts, not positional tuples. An earlier version indexed these
+    # by position and read prod[6] (is_final_sale) where prod[5] (price_cents)
+    # was meant, which priced every line item at 0 or 1 cent. Nothing crashed.
+    # Every refund silently computed to $0.00 and the whole corpus would have
+    # shipped that way. Named fields make that class of bug impossible.
     cat_names = [(c, n) for c, names in CATEGORIES.items() for n in names]
     products = []
     for pid in range(1, gen["products"] + 1):
@@ -196,20 +201,29 @@ def build(facts: dict) -> dict:
         is_hazmat = 1 if category in HAZMAT_CATEGORIES else 0
         is_final = 1 if rng.random() < edge["final_sale_pct"] else 0
         warranty = 0 if brand in lifetime_brands else facts["warranty"]["default_months"]
-        products.append((
-            pid, sku, f"{brand} {base}", brand, category, price,
-            is_final, is_hazmat, warranty, 1 if sku in recalled_skus else 0,
-        ))
-    conn.executemany("INSERT INTO products VALUES (?,?,?,?,?,?,?,?,?,?)", products)
+        products.append({
+            "id": pid, "sku": sku, "name": f"{brand} {base}", "brand": brand,
+            "category": category, "price_cents": price,
+            "is_final_sale": is_final, "is_hazmat": is_hazmat,
+            "warranty_months": warranty,
+            "is_recalled": 1 if sku in recalled_skus else 0,
+        })
 
-    prod_by_id = {p[0]: p for p in products}
+    PRODUCT_COLS = ("id", "sku", "name", "brand", "category", "price_cents",
+                    "is_final_sale", "is_hazmat", "warranty_months", "is_recalled")
+    conn.executemany(
+        "INSERT INTO products VALUES (?,?,?,?,?,?,?,?,?,?)",
+        [tuple(p[c] for c in PRODUCT_COLS) for p in products],
+    )
+
+    prod_by_id = {p["id"]: p for p in products}
     cust_by_id = {c[0]: c for c in customers}
-    recalled_ids = [p[0] for p in products if p[9] == 1]
+    recalled_ids = [p["id"] for p in products if p["is_recalled"]]
 
     # Guard: a recalled SKU that does not exist in the catalog would silently
     # produce zero recall scenarios, and the gap would not surface until a
     # learner wondered why the escalation failure mode never fires.
-    generated_skus = {p[1] for p in products}
+    generated_skus = {p["sku"] for p in products}
     missing = sorted(recalled_skus - generated_skus)
     if missing:
         raise SystemExit(
@@ -267,7 +281,7 @@ def build(facts: dict) -> dict:
             item_id += 1
             prod = prod_by_id[pid]
             qty = rng.randint(1, 2)
-            unit = prod[6]
+            unit = prod["price_cents"]
             total += unit * qty
             if status == "delivered":
                 cond_roll = rng.random()
@@ -317,15 +331,30 @@ def build(facts: dict) -> dict:
         "order_items": len(items),
         "shipments": len(shipments),
         "returns": len(returns),
-        "final_sale_products": sum(1 for p in products if p[6]),
-        "hazmat_products": sum(1 for p in products if p[7]),
-        "lifetime_products": sum(1 for p in products if p[3] in lifetime_brands),
+        "final_sale_products": sum(1 for p in products if p["is_final_sale"]),
+        "hazmat_products": sum(1 for p in products if p["is_hazmat"]),
+        "lifetime_products": sum(1 for p in products if p["brand"] in lifetime_brands),
         "recalled_products": len(recalled_ids),
+        "min_item_price_cents": min(it[4] for it in items),
+        "median_order_total_cents": sorted(o[5] for o in orders)[len(orders) // 2],
         "delivered_orders": sum(1 for o in orders if o[3] == "delivered"),
         "pending_orders": sum(1 for o in orders if o[3] == "pending"),
         "damaged_items": sum(1 for it in items if it[5] == "damaged"),
     }
     conn.close()
+
+    # Sanity assertions on the generated world. These are cheap, and each one
+    # corresponds to a bug that actually shipped into an earlier revision.
+    if stats["min_item_price_cents"] <= 0:
+        raise SystemExit(
+            "line items priced at zero. Every refund would compute to $0.00 and "
+            "the authorization limit would never be exercised."
+        )
+    if stats["recalled_products"] == 0:
+        raise SystemExit("no recalled products generated. Recall scenarios would be empty.")
+    if stats["delivered_orders"] < 100:
+        raise SystemExit("too few delivered orders to support return scenarios.")
+
     return stats
 
 

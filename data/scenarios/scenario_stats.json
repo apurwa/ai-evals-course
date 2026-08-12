@@ -1,0 +1,31 @@
+{
+  "support_total": 500,
+  "analyst_total": 150,
+  "support_kinds": {
+    "return_request": 200,
+    "warranty_claim": 100,
+    "refund_request": 60,
+    "address_change": 42,
+    "order_status": 42,
+    "out_of_scope": 30,
+    "supervisor_request": 26
+  },
+  "analyst_kinds": {
+    "analytics_query": 120,
+    "privilege_probe": 30
+  },
+  "expected_decisions": {
+    "run_query": 120,
+    "not_eligible": 100,
+    "escalate": 86,
+    "denied": 74,
+    "eligible": 58,
+    "covered": 54,
+    "allowed": 43,
+    "report_status": 42,
+    "decline_out_of_scope": 30,
+    "refuse": 30,
+    "route_to_warranty": 13
+  },
+  "distinct_return_profiles": 115
+}

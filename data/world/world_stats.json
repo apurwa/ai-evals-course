@@ -9,8 +9,10 @@
   "hazmat_products": 18,
   "lifetime_products": 27,
   "recalled_products": 2,
+  "min_item_price_cents": 2900,
+  "median_order_total_cents": 74300,
   "delivered_orders": 720,
   "pending_orders": 67,
   "damaged_items": 128,
-  "sha256": "35147e345c2fc5d3970b5e8d588d55b5df1b7f9ef35c0e76628e849f6aba9c13"
+  "sha256": "a6bd8436ce02ff4416ac1bb17fbc3f2af2f129d8972fccb444f6c785fbaa36e6"
 }

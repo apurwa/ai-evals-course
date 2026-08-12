@@ -1,12 +1,13 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world check check-coverage check-permissions clean
+.PHONY: help world scenarios check check-coverage check-permissions clean
 
 help:
 	@echo "Wayfarer AI Evals Course"
 	@echo ""
 	@echo "  make world       rebuild the world database from facts.yaml (no API key)"
+	@echo "  make scenarios   regenerate the 650 scenarios (no API key)"
 	@echo "  make check       run every correctness gate (no API key)"
 	@echo "  make clean       remove generated artifacts"
 	@echo ""
@@ -15,8 +16,11 @@ help:
 world:
 	$(PY) data/world/build_world.py
 
+scenarios:
+	$(PY) scripts/build_scenarios.py
+
 # Every gate that runs without an API key. Wired into CI.
-check: world check-coverage check-permissions
+check: world check-coverage check-permissions scenarios
 	@echo ""
 	@echo "all gates passed"
 
