@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 Foundations</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 1 &rsaquo; L1</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Lesson 1</span><span class="dot">/</span>
+      <span>Module 1</span><span class="dot">/</span>
+      <span>~50 min</span>
+    </div>
+    <h1>Foundations</h1>
+    <p class="lede">
+      Define the agent's job precisely enough that "it failed" becomes a decidable claim
+      rather than an opinion.
+    </p>
+  </header>
+
+  <!-- 01 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      By the end you can take any run of an agent and say, without argument, whether it succeeded,
+      because you will have written down what success means at three separate levels and seen why
+      the top level alone is not enough.
+    </p>
+  </div>
+
+  <!-- 02 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      A team ships an agent, someone says it feels worse this week, and nobody can settle it. There
+      is no shared definition of a correct run, so every debate collapses into taste. Eventually
+      somebody proposes "let's measure user satisfaction", which is unfalsifiable on a sample of
+      forty conversations, and the argument continues.
+    </p>
+    <p>
+      The specific version of this failure, the one you will see in the lab, is subtler and more
+      common. A team does define success, but defines it only at the level of the final answer.
+      Their eval then reports 94 percent and they believe it. Meanwhile the agent is reaching for
+      actions it is not allowed to take, being blocked by code, and recovering. The number is real.
+      It is also measuring the wrong thing, and it will keep looking healthy right up until someone
+      removes the thing that was quietly catching the mistakes.
+    </p>
+  </div>
+
+  <!-- 03 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+
+    <dl class="defs">
+      <dt>Outcome-level success</dt>
+      <dd>
+        Did the user end up in the correct end state? For a return request: was the decision right,
+        was the amount right, was the customer told the truth. Judged from the final response alone.
+      </dd>
+
+      <dt>Trajectory-level success</dt>
+      <dd>
+        Did the agent take an acceptable path? Did it consult the authoritative source instead of
+        recalling policy from memory, respect the order in which rules apply, and avoid actions it
+        had no business attempting. Judged from the sequence of steps.
+      </dd>
+
+      <dt>Step-level success</dt>
+      <dd>
+        Was each individual action valid on its own terms? Permitted by role and tier, well-formed
+        arguments, returned without error. Judged one span at a time.
+      </dd>
+
+      <dt>The Three Gulfs</dt>
+      <dd>
+        Comprehension (you do not know what your system is actually doing), specification (you cannot
+        state what it should do), and generalization (it does the right thing here and not there).
+        This course maps them onto three verbs: <b>analyze</b>, <b>measure</b>, <b>improve</b>.
+        This lesson is entirely about the second gulf, because you cannot close the other two while
+        the specification is still vague.
+      </dd>
+
+      <dt>Progressive tool disclosure</dt>
+      <dd>
+        Offering a model only the tools its role can actually use, rather than the full set plus an
+        instruction to behave. The analyst in this repository is never shown
+        <code>issue_refund</code>. A tool that is not on the menu cannot be ordered by mistake.
+      </dd>
+    </dl>
+
+    <div class="note">
+      <h4>Why three levels and not one</h4>
+      <p style="font-size:14.5px">
+        The levels are independent. A run can pass at the outcome level and fail at the step level,
+        or the exact reverse. The lab gives you one of each and asks you to tell them apart. If they
+        were not independent, one number would do and this lesson would not exist.
+      </p>
+    </div>
+  </div>
+
+  <!-- 04 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <p>A run is a tree, and each level reads a different part of it.</p>
+    <pre><code>session ─────────────────────────────── OUTCOME   final response vs ground truth
+ ├── model_call:0
+ ├── tool:lookup_order            ok  ─┐
+ ├── model_call:1                      │
+ ├── tool:check_return_eligibility ok  ├─ TRAJECTORY  was this the right path?
+ ├── model_call:2                      │
+ ├── tool:create_return_label  DENIED ─┘
+ │                                 └──── STEP     was this one action valid?
+ ├── model_call:3
+ ├── tool:create_return_label     ok
+ └── model_call:4</code></pre>
+    <p>
+      Read only the top line and the denial in the middle is invisible. Read only the denials and
+      you cannot tell whether the customer was helped. Both readings are incomplete and both are
+      routinely shipped as "the eval".
+    </p>
+  </div>
+
+  <!-- 05 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 1</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Three-level success writer</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Three real runs of the Wayfarer agent. For each one you judge pass or fail at all three
+        levels before seeing the answer. One run passes everywhere, one is right for the wrong
+        reasons, and one is quietly wrong in a way no permission check will ever catch.
+      </p>
+      <p style="margin-top:16px">
+        <a class="btn" href="../labs/01-success-levels.html">Open the lab</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- 06 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <p>Break the permission layer on purpose, and watch it not break.</p>
+    <pre><code># from the repository root, in a virtualenv
+make check                     # all five gates, no API key needed
+python agent/support_agent.py --selftest</code></pre>
+    <p>
+      The selftest drives the real control loop with a scripted client, so it needs no API key. Read
+      what it asserts, then go break one of them deliberately: open
+      <code>data/world/facts.yaml</code>, raise <code>refund_auto_approve_limit_cents</code> from
+      <code>20000</code> to <code>500000</code>, and run <code>make check</code> again.
+    </p>
+    <p>
+      Two different gates should fail, and they should disagree with each other in a specific way.
+      Read both messages. That disagreement is the entire argument for keeping ground truth and
+      enforcement in separate files. Then put the value back.
+    </p>
+
+    <div class="note">
+      <h4>Expected output</h4>
+      <p style="font-size:14.5px">
+        <code>make check</code> ends with <code>all gates passed</code>. The selftest prints a list
+        of <code>ok</code> lines and then <code>agent selftest passed</code>. Anything else means
+        stop and read, because everything in later lessons assumes these invariants hold.
+      </p>
+    </div>
+  </div>
+
+  <!-- 07 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li>
+        <b>Check whether your success criterion can be evaluated by someone who was not there.</b>
+        "The agent was helpful" cannot. "The refund equals the amount <code>rules.py</code> computes
+        for that line" can, and two people will agree on it without a meeting.
+      </li>
+      <li>
+        <b>Check whether your permission layer is being mistaken for an eval.</b> A gate bounds what
+        the agent may do. It says nothing about whether what it did was right, and it usually only
+        guards one direction. In this repository the gate blocks refunds that are too large and
+        permits refunds that are too small, because only one of those costs the company money.
+      </li>
+      <li>
+        <b>Check that the safe action is actually reachable.</b> Escalation to a human is the
+        designated fallback for every case the agent cannot handle. In this repository it was
+        silently unreachable for both roles, because an unclassified tool defaults to the highest
+        risk tier and the highest tier always requires a human. Two correct-looking assertions
+        passed the whole time. Nothing asserted that the escape hatch opens.
+      </li>
+      <li>
+        <b>Check whether you are agentic where you should be deterministic.</b> Deciding whether a
+        return is within its window is arithmetic over two dates. Handing that to a model buys
+        nothing and introduces a failure mode. Ask the model to converse; ask code to decide.
+      </li>
+    </ul>
+  </div>
+
+  <!-- 08 -->
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <p>You are done with this lesson when you can answer these without looking:</p>
+    <ul class="tight">
+      <li>Give an example of a run that passes at the outcome level and fails at the step level.</li>
+      <li>Give an example of the reverse.</li>
+      <li>Why is "did the tool call return an error" a poor definition of step-level success?</li>
+      <li>Your agent refunds a customer 30 percent less than policy entitles them to, and every
+          permission check passes. Which level catches it, and what does the check compare against?</li>
+      <li>Name one decision in this agent that should not be agentic, and say what it costs you if
+          it is.</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="../index.html">&larr; Course home</a>
+    <span style="font-size:14px;color:var(--text-3)">L2 Designing for Evaluability is being written</span>
+  </div>
+
+  <footer>
+    Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.
+    Independent implementation, MIT licensed.
+  </footer>
+
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

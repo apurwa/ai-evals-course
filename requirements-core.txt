@@ -1,0 +1,7 @@
+# Everything needed to build the world, run all correctness gates, generate
+# scenarios, and run the agent selftest. No API key, no network, one package.
+#
+# This is deliberately tiny. `make check` is the first thing a learner runs and
+# it should not be able to disturb anything else on their machine.
+
+PyYAML>=6.0

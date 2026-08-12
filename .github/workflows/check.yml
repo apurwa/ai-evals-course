@@ -33,6 +33,19 @@ jobs:
       - name: Build the world and run every gate
         run: make check
 
+      - name: Assert the committed lab data is not stale
+        # `make check` regenerates docs/data/seed-traces.*, which the L1 browser
+        # lab loads directly. Those files are committed so Track A works with no
+        # build step, and committed generated files go stale silently. If a
+        # policy number moves and nobody reruns the generator, the lab keeps
+        # teaching the old world while every other gate still passes.
+        run: |
+          if ! git diff --exit-code -- docs/data/; then
+            echo "::error::docs/data is stale. Run 'make check' and commit the regenerated lab data."
+            exit 1
+          fi
+          echo "committed lab data matches the generator"
+
       - name: Assert the world is byte-reproducible
         # Rebuild and confirm the hash is unchanged. Catches any accidental
         # dependence on the system clock, dict ordering, or an unseeded RNG.

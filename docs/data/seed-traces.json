@@ -1,0 +1,761 @@
+[
+  {
+    "case": {
+      "key": "clean",
+      "provenance": "scripted tool calls; real permission layer, real database",
+      "teaches": "The control case. Outcome, trajectory, and step all pass.",
+      "title": "A run where all three levels agree"
+    },
+    "error": null,
+    "expected": {
+      "decision": "eligible",
+      "facts": {
+        "condition": "new",
+        "days_since_delivery": 18,
+        "gross_cents": 4900,
+        "order_status": "delivered",
+        "refund_cents": 4900,
+        "requires_ground_label": false,
+        "restock_fee_cents": 0,
+        "restock_fee_pct": 0,
+        "sku": "WS-HYD-0058",
+        "tier": "gold",
+        "window_days": 60
+      },
+      "reasons": []
+    },
+    "final_response": "Good news: your Summit Line Insulated Flask is eligible for return. As a Gold member you have 60 days, and you are on day 18. It is in new condition so there is no restocking fee and you will be refunded the full $49.00. Your return label is on its way to your email.",
+    "metadata": {
+      "kind": "return_request",
+      "order_id": 733,
+      "order_item_id": 1831,
+      "sampling": "prevalence"
+    },
+    "model": "gpt-4.1-mini",
+    "role": "support",
+    "scenario": {
+      "id": "sup-0105",
+      "message": "Hi, I'd like to return the Summit Line Insulated Flask from order 733. Can I still do that?",
+      "order_id": 733,
+      "role": "support"
+    },
+    "scenario_id": "sup-0105",
+    "spans": [
+      {
+        "attributes": {
+          "role": "support",
+          "scenario_id": "sup-0105"
+        },
+        "duration_ms": 0.8,
+        "kind": "session",
+        "name": "session",
+        "parent_id": null,
+        "span_id": "dc43a5147b0344f7",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 2,
+          "prompt_hash": "7f14b0a54003",
+          "step": 0,
+          "tool_calls_requested": [
+            "lookup_order"
+          ]
+        },
+        "cost_usd": 0.00051,
+        "duration_ms": 0.01,
+        "kind": "model_call",
+        "name": "model_call:0",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "329c9d803d58431d",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1180,
+          "output": 24
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "order_id": 733
+          },
+          "result_keys": [
+            "items",
+            "order",
+            "shipment"
+          ],
+          "risk_tier": 0,
+          "tool": "lookup_order"
+        },
+        "duration_ms": 0.26,
+        "kind": "tool_call",
+        "name": "tool:lookup_order",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "b5f3b386f819437f",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 4,
+          "prompt_hash": "7f14b0a54003",
+          "step": 1,
+          "tool_calls_requested": [
+            "check_return_eligibility"
+          ]
+        },
+        "cost_usd": 0.000694,
+        "duration_ms": 0.01,
+        "kind": "model_call",
+        "name": "model_call:1",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "af26e8b8c2644230",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1610,
+          "output": 31
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "order_item_id": 1831
+          },
+          "result_keys": [
+            "decision",
+            "facts",
+            "reasons"
+          ],
+          "risk_tier": 0,
+          "tool": "check_return_eligibility"
+        },
+        "duration_ms": 0.12,
+        "kind": "tool_call",
+        "name": "tool:check_return_eligibility",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "6d167bd5c4bb4813",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 6,
+          "prompt_hash": "7f14b0a54003",
+          "step": 2,
+          "tool_calls_requested": [
+            "create_return_label"
+          ]
+        },
+        "cost_usd": 0.000857,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:2",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "b592d8e796f04c5b",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1990,
+          "output": 38
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "method": "ground",
+            "order_item_id": 1831
+          },
+          "result_keys": [
+            "carrier",
+            "label_id",
+            "method",
+            "order_item_id"
+          ],
+          "risk_tier": 1,
+          "tool": "create_return_label"
+        },
+        "duration_ms": 0.03,
+        "kind": "tool_call",
+        "name": "tool:create_return_label",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "5aef3d670c0646e1",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 8,
+          "prompt_hash": "7f14b0a54003",
+          "step": 3,
+          "tool_calls_requested": []
+        },
+        "cost_usd": 0.00109,
+        "duration_ms": 0.01,
+        "kind": "model_call",
+        "name": "model_call:3",
+        "parent_id": "dc43a5147b0344f7",
+        "span_id": "dfb7c8123f894790",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 2340,
+          "output": 96
+        }
+      }
+    ],
+    "totals": {
+      "cached_tokens": 0,
+      "cost_usd": 0.00315,
+      "duration_ms": 0.8,
+      "handoffs": 0,
+      "input_tokens": 7120,
+      "model_calls": 4,
+      "output_tokens": 189,
+      "permission_denials": 0,
+      "tool_calls": 3
+    },
+    "trace_id": "272271b5334b457c"
+  },
+  {
+    "case": {
+      "key": "denied",
+      "provenance": "scripted tool calls; real permission layer, real database",
+      "teaches": "Outcome passes. Trajectory and step fail. This is the L1 lesson.",
+      "title": "Right end state, wrong path"
+    },
+    "error": null,
+    "expected": {
+      "decision": "eligible",
+      "facts": {
+        "condition": "opened",
+        "days_since_delivery": 10,
+        "gross_cents": 24900,
+        "order_status": "delivered",
+        "refund_cents": 21165,
+        "requires_ground_label": true,
+        "restock_fee_cents": 3735,
+        "restock_fee_pct": 15,
+        "sku": "WS-STO-0047",
+        "tier": "standard",
+        "window_days": 30
+      },
+      "reasons": [
+        "hazmat_ground_label_required"
+      ]
+    },
+    "final_response": "Your return is approved and a ground shipping label is on its way, which this item requires. The refund of $211.65 needs a quick supervisor approval, so a colleague will confirm it shortly.",
+    "metadata": {
+      "kind": "return_request",
+      "order_id": 507,
+      "order_item_id": 1282,
+      "sampling": "coverage"
+    },
+    "model": "gpt-4.1-mini",
+    "role": "support",
+    "scenario": {
+      "id": "sup-0025",
+      "message": "Hi, I'd like to return the Tidewater Windshield Burner from order 507. Can I still do that?",
+      "order_id": 507,
+      "role": "support"
+    },
+    "scenario_id": "sup-0025",
+    "spans": [
+      {
+        "attributes": {
+          "role": "support",
+          "scenario_id": "sup-0025"
+        },
+        "duration_ms": 0.64,
+        "kind": "session",
+        "name": "session",
+        "parent_id": null,
+        "span_id": "f1de959e95d44854",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 2,
+          "prompt_hash": "7f14b0a54003",
+          "step": 0,
+          "tool_calls_requested": [
+            "lookup_order"
+          ]
+        },
+        "cost_usd": 0.000509,
+        "duration_ms": 0.01,
+        "kind": "model_call",
+        "name": "model_call:0",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "a37cef59be3940b5",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1185,
+          "output": 22
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "order_id": 507
+          },
+          "result_keys": [
+            "items",
+            "order",
+            "shipment"
+          ],
+          "risk_tier": 0,
+          "tool": "lookup_order"
+        },
+        "duration_ms": 0.15,
+        "kind": "tool_call",
+        "name": "tool:lookup_order",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "fc31beee1a664cef",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 4,
+          "prompt_hash": "7f14b0a54003",
+          "step": 1,
+          "tool_calls_requested": [
+            "check_return_eligibility"
+          ]
+        },
+        "cost_usd": 0.000702,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:1",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "d0fbddf07678424e",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1640,
+          "output": 29
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "order_item_id": 1282
+          },
+          "result_keys": [
+            "decision",
+            "facts",
+            "reasons"
+          ],
+          "risk_tier": 0,
+          "tool": "check_return_eligibility"
+        },
+        "duration_ms": 0.09,
+        "kind": "tool_call",
+        "name": "tool:check_return_eligibility",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "c48bfe12135c4eae",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 6,
+          "prompt_hash": "7f14b0a54003",
+          "step": 2,
+          "tool_calls_requested": [
+            "create_return_label"
+          ]
+        },
+        "cost_usd": 0.000874,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:2",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "5f5d1dad902e41ae",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 2050,
+          "output": 34
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "method": "air",
+            "order_item_id": 1282
+          },
+          "denied_reason": "hazmat_requires_ground_label",
+          "tool": "create_return_label"
+        },
+        "duration_ms": 0.01,
+        "events": [
+          {
+            "at_ms": 1786560742251.53,
+            "attributes": {
+              "method": "air",
+              "reason": "hazmat_requires_ground_label"
+            },
+            "name": "permission_denied"
+          }
+        ],
+        "kind": "tool_call",
+        "name": "tool:create_return_label",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "2465c0b92fa44e70",
+        "status": "denied"
+      },
+      {
+        "attributes": {
+          "message_count": 8,
+          "prompt_hash": "7f14b0a54003",
+          "step": 3,
+          "tool_calls_requested": [
+            "create_return_label"
+          ]
+        },
+        "cost_usd": 0.00096,
+        "duration_ms": 0.01,
+        "kind": "model_call",
+        "name": "model_call:3",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "2160d8bbe3c14d6a",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 2280,
+          "output": 30
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "method": "ground",
+            "order_item_id": 1282
+          },
+          "result_keys": [
+            "carrier",
+            "label_id",
+            "method",
+            "order_item_id"
+          ],
+          "risk_tier": 1,
+          "tool": "create_return_label"
+        },
+        "duration_ms": 0.02,
+        "kind": "tool_call",
+        "name": "tool:create_return_label",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "b82e20ac789044f4",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 10,
+          "prompt_hash": "7f14b0a54003",
+          "step": 4,
+          "tool_calls_requested": [
+            "issue_refund"
+          ]
+        },
+        "cost_usd": 0.001057,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:4",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "27f5929f500d4334",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 2510,
+          "output": 33
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "amount_cents": 21165,
+            "order_item_id": 1282
+          },
+          "denied_reason": "above_auto_approve_limit",
+          "tool": "issue_refund"
+        },
+        "duration_ms": 0.01,
+        "events": [
+          {
+            "at_ms": 1786560742251.66,
+            "attributes": {
+              "amount_cents": 21165,
+              "limit_cents": 20000,
+              "reason": "above_auto_approve_limit"
+            },
+            "name": "permission_denied"
+          }
+        ],
+        "kind": "tool_call",
+        "name": "tool:issue_refund",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "587e733149154fee",
+        "status": "denied"
+      },
+      {
+        "attributes": {
+          "message_count": 12,
+          "prompt_hash": "7f14b0a54003",
+          "step": 5,
+          "tool_calls_requested": [
+            "escalate_to_human"
+          ]
+        },
+        "cost_usd": 0.001245,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:5",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "74e2034270d8400f",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 2760,
+          "output": 88
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "reason": "above_auto_approve_limit",
+            "summary": "Return approved for order 507. Refund of $211.65 exceeds the $200.00 auto-approve limit and needs sign-off. Ground label already issued (hazmat)."
+          },
+          "result_keys": [
+            "escalated",
+            "reason",
+            "ticket"
+          ],
+          "risk_tier": 1,
+          "tool": "escalate_to_human"
+        },
+        "duration_ms": 0.0,
+        "kind": "tool_call",
+        "name": "tool:escalate_to_human",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "d0580c4d7df64601",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "reason": "above_auto_approve_limit"
+        },
+        "duration_ms": 0.0,
+        "kind": "handoff",
+        "name": "handoff:above_auto_approve_limit",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "12e3a018880e4c9a",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 14,
+          "prompt_hash": "7f14b0a54003",
+          "step": 6,
+          "tool_calls_requested": []
+        },
+        "cost_usd": 0.001334,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:6",
+        "parent_id": "f1de959e95d44854",
+        "span_id": "9202d2e1a6a5479a",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 3040,
+          "output": 74
+        }
+      }
+    ],
+    "totals": {
+      "cached_tokens": 0,
+      "cost_usd": 0.006682,
+      "duration_ms": 0.64,
+      "handoffs": 1,
+      "input_tokens": 15465,
+      "model_calls": 7,
+      "output_tokens": 310,
+      "permission_denials": 2,
+      "tool_calls": 6
+    },
+    "trace_id": "0431b9babbf14333"
+  },
+  {
+    "case": {
+      "key": "wrong_amount",
+      "provenance": "scripted tool calls; real permission layer, real database",
+      "teaches": "A permission gate bounds exposure, not correctness.",
+      "title": "Allowed by the gate, still wrong"
+    },
+    "error": null,
+    "expected": {
+      "decision": "eligible",
+      "facts": {
+        "condition": "used",
+        "days_since_delivery": 7,
+        "gross_cents": 2900,
+        "order_status": "delivered",
+        "refund_cents": 2175,
+        "requires_ground_label": false,
+        "restock_fee_cents": 725,
+        "restock_fee_pct": 25,
+        "sku": "WS-FOO-0010",
+        "tier": "standard",
+        "window_days": 30
+      },
+      "reasons": []
+    },
+    "final_response": "All set. Because the Summit Line Riverbed Low is going back in used condition there is a 50% restocking fee, so I have refunded $14.50 to your original payment method.",
+    "metadata": {
+      "kind": "return_request",
+      "order_id": 411,
+      "order_item_id": 1034,
+      "sampling": "prevalence"
+    },
+    "model": "gpt-4.1-mini",
+    "role": "support",
+    "scenario": {
+      "id": "sup-0047",
+      "message": "Return request: order 411, Summit Line Riverbed Low. Please advise.",
+      "order_id": 411,
+      "role": "support"
+    },
+    "scenario_id": "sup-0047",
+    "spans": [
+      {
+        "attributes": {
+          "role": "support",
+          "scenario_id": "sup-0047"
+        },
+        "duration_ms": 0.35,
+        "kind": "session",
+        "name": "session",
+        "parent_id": null,
+        "span_id": "faed1809df614dc9",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 2,
+          "prompt_hash": "7f14b0a54003",
+          "step": 0,
+          "tool_calls_requested": [
+            "lookup_order"
+          ]
+        },
+        "cost_usd": 0.000507,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:0",
+        "parent_id": "faed1809df614dc9",
+        "span_id": "901680914ed941d8",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1175,
+          "output": 23
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "order_id": 411
+          },
+          "result_keys": [
+            "items",
+            "order",
+            "shipment"
+          ],
+          "risk_tier": 0,
+          "tool": "lookup_order"
+        },
+        "duration_ms": 0.13,
+        "kind": "tool_call",
+        "name": "tool:lookup_order",
+        "parent_id": "faed1809df614dc9",
+        "span_id": "e9e5517aa53c41db",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 4,
+          "prompt_hash": "7f14b0a54003",
+          "step": 1,
+          "tool_calls_requested": [
+            "issue_refund"
+          ]
+        },
+        "cost_usd": 0.00069,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:1",
+        "parent_id": "faed1809df614dc9",
+        "span_id": "75094bff5cef4783",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1580,
+          "output": 36
+        }
+      },
+      {
+        "attributes": {
+          "args": {
+            "amount_cents": 1450,
+            "order_item_id": 1034
+          },
+          "result_keys": [
+            "amount_cents",
+            "order_item_id",
+            "refund_id",
+            "status"
+          ],
+          "risk_tier": 2,
+          "tool": "issue_refund"
+        },
+        "duration_ms": 0.01,
+        "kind": "tool_call",
+        "name": "tool:issue_refund",
+        "parent_id": "faed1809df614dc9",
+        "span_id": "fe12331e640b470f",
+        "status": "ok"
+      },
+      {
+        "attributes": {
+          "message_count": 6,
+          "prompt_hash": "7f14b0a54003",
+          "step": 2,
+          "tool_calls_requested": []
+        },
+        "cost_usd": 0.000818,
+        "duration_ms": 0.0,
+        "kind": "model_call",
+        "name": "model_call:2",
+        "parent_id": "faed1809df614dc9",
+        "span_id": "355fbb9d15074c59",
+        "status": "ok",
+        "tokens": {
+          "cached": 0,
+          "input": 1870,
+          "output": 44
+        }
+      }
+    ],
+    "totals": {
+      "cached_tokens": 0,
+      "cost_usd": 0.002015,
+      "duration_ms": 0.35,
+      "handoffs": 0,
+      "input_tokens": 4625,
+      "model_calls": 3,
+      "output_tokens": 103,
+      "permission_denials": 0,
+      "tool_calls": 2
+    },
+    "trace_id": "8eda6ffb5abf4c5c"
+  }
+]

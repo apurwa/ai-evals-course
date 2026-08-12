@@ -7,32 +7,55 @@ improve both accuracy and cost.
 
 Two ways to take it.
 
+## Status
+
+Built in the open, so here is where it actually stands.
+
+| Part | State |
+| --- | --- |
+| World, ground-truth rules, permission layer, correctness gates | Built and tested |
+| 650 scenarios with computed expected outcomes | Built |
+| Support agent, trace schema, agent selftest | Built, runs with no API key |
+| **L1 Foundations, lesson and browser lab** | **Written, works** |
+| L2 to L10 lesson pages and labs | Outlined, not written |
+| Model-generated trace corpus | Needs an API key run |
+
+Anything not written yet is left unlinked rather than linked to a stub.
+
 ## Track A: run it in your browser
 
-Nothing to install. No API key. No Docker.
+Nothing to install. No API key. No Docker. No web server.
 
-Open `docs/index.html`, or visit the published site. Every lab runs client-side
-against a corpus of real agent traces committed to this repository. You will
-annotate real traces, build a failure taxonomy, write and score judge prompts,
-and attack a permission layer that genuinely enforces.
+Open `docs/index.html` and start Lesson 1. Labs load their data from a plain
+script file rather than by `fetch`, specifically so that opening the HTML
+straight off your disk works and the no-install promise is actually true.
 
 ## Track B: run it on your machine
 
 ```bash
 git clone https://github.com/apurwa/ai-evals-course
 cd ai-evals-course
-pip install -r requirements.txt
 
-make world     # build the deterministic world, no API key needed
-make check     # run every correctness gate, no API key needed
+python3 -m venv .venv && source .venv/bin/activate    # do not skip this
+pip install -r requirements-core.txt                  # one package
+
+make check     # every correctness gate, no API key needed
 ```
 
 `make check` should print `all gates passed`. If it does not, stop and read the
 output rather than continuing, because everything downstream assumes those
 invariants hold.
 
-To run the agent and generate your own traces you will need an OpenAI API key
-and Docker. See `docs/lessons/01-foundations.html`.
+**Use a virtualenv.** `requirements-core.txt` is one package and is all the
+gates need. `requirements.txt` adds the agent runtime and the L5 statistics
+libraries. `requirements-tracing.txt` is separate again, because Langfuse pins
+`opentelemetry` and `protobuf` tightly enough to upgrade them out from under
+everything else sharing the environment. That is exactly what it did the first
+time we installed it into a conda base, and breaking someone's unrelated
+packages in lesson two is a bad way to teach them about instrumentation.
+
+To run the agent against a live model and generate your own traces you will
+need an OpenAI API key. See `docs/lessons/01-foundations.html`.
 
 ---
 

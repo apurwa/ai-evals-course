@@ -1,16 +1,20 @@
 # Track A (browser labs) needs none of this. Open docs/index.html and go.
-# Track B (run the real agent) needs the following.
+#
+# INSTALL INTO A VIRTUALENV, not your system or base conda environment:
+#
+#     python3 -m venv .venv && source .venv/bin/activate
+#     pip install -r requirements.txt
+#
+# If you only want the first lessons, requirements-core.txt is one package and
+# is enough for `make check`, the world, the scenarios, and the agent selftest.
 
-PyYAML>=6.0
+-r requirements-core.txt
 
 # Agent runtime. Required only for `make corpus` and running a live scenario.
 # The control loop is written out explicitly in agent/support_agent.py rather
 # than delegated to an agent framework, so only the base SDK is needed. See the
 # module docstring for why.
 openai>=1.40.0
-
-# Tracing backend client. The server itself runs in Docker, see infra/.
-langfuse>=2.50.0
 
 # Judge validation and statistics (L5).
 numpy>=1.26
@@ -20,3 +24,12 @@ scikit-learn>=1.4
 # Reports a corrected success rate with confidence intervals rather than the
 # raw judge rate, which is biased whenever TPR and TNR are below 1.0.
 judgy>=0.1.0
+
+# NOT INCLUDED HERE, on purpose: langfuse.
+#
+# It is the tracing backend for L2 and it is genuinely useful, but it pins
+# opentelemetry and protobuf hard enough to upgrade them out from under
+# anything else in the same environment. Installing it into a shared conda base
+# broke streamlit and opentelemetry-instrumentation on the first machine that
+# tried it. That is a bad first experience to hand someone in lesson two, so it
+# lives in requirements-tracing.txt and you install it when you get there.

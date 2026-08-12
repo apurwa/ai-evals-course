@@ -1,0 +1,17 @@
+# The L2 tracing backend client. Install this only when you reach Lesson 2.
+#
+#     python3 -m venv .venv && source .venv/bin/activate
+#     pip install -r requirements-tracing.txt
+#
+# Kept separate because langfuse pins opentelemetry and protobuf tightly enough
+# to upgrade them for every other package sharing the environment. In a venv
+# that is fine and expected. In a shared base environment it will break
+# unrelated things, which is exactly what happened the first time we installed
+# it, so the split is here to make the venv step unavoidable rather than
+# advisory.
+#
+# The server itself runs in Docker. See infra/.
+
+-r requirements-core.txt
+
+langfuse>=2.50.0

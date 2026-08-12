@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 1 Three-Level Success</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .cases { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .case-btn {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;
+    background: var(--surface); color: var(--text-2);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 9px 14px; cursor: pointer; text-align: left;
+  }
+  .case-btn:hover { border-color: var(--accent-line); color: var(--accent); }
+  .case-btn[aria-selected="true"] {
+    background: var(--accent-wash); border-color: var(--accent-line); color: var(--accent);
+    font-weight: 600;
+  }
+
+  .msg {
+    font-family: var(--serif); font-size: 1.06rem; line-height: 1.5;
+    background: var(--surface-2); border-left: 3px solid var(--line);
+    border-radius: 0 8px 8px 0; padding: 14px 17px; color: var(--text);
+  }
+
+  .spans { font-family: var(--mono); font-size: 12.5px; }
+  .span {
+    display: grid; grid-template-columns: 118px 1fr auto; gap: 12px;
+    padding: 8px 12px; border-top: 1px solid var(--line-soft); align-items: baseline;
+  }
+  .span:first-child { border-top: none; }
+  .span .k { color: var(--text-3); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .span .nm { color: var(--text); word-break: break-word; }
+  .span .args { color: var(--text-3); font-size: 11.5px; display: block; margin-top: 3px; }
+  .span.denied { background: var(--signal-wash); }
+  .span.denied .nm { color: var(--signal); }
+  .st { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--text-3); }
+  .st.ok { color: var(--ok); border-color: var(--ok-line); background: var(--ok-wash); }
+  .st.denied { color: var(--signal); border-color: var(--signal-line); background: var(--signal-wash); }
+
+  .judge { margin-top: 26px; }
+  .level { border: 1px solid var(--line); border-radius: 9px; background: var(--surface); padding: 16px 18px; margin-bottom: 12px; }
+  .level h4 { font-family: var(--sans); font-size: 14px; font-weight: 600; margin: 0 0 3px; }
+  .level .q { font-size: 13.5px; color: var(--text-2); margin: 0 0 11px; }
+  .opts { display: flex; gap: 8px; }
+  .opt {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase;
+    background: var(--surface-2); color: var(--text-2);
+    border: 1px solid var(--line); border-radius: 6px; padding: 7px 15px; cursor: pointer;
+  }
+  .opt[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent-line); color: var(--accent); font-weight: 600; }
+  .verdict { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 14px; display: none; }
+  .verdict.show { display: block; }
+  .verdict .mark { font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; margin-right: 9px; }
+  .mark.right { color: var(--ok); background: var(--ok-wash); border: 1px solid var(--ok-line); }
+  .mark.wrong { color: var(--signal); background: var(--signal-wash); border: 1px solid var(--signal-line); }
+
+  .truth { margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--text-2); }
+  .truth b { color: var(--text); }
+  .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+  .score { font-size: 14px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/01-foundations.html">L1</a> &rsaquo; Lab 1</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 1</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~20 min</span></div>
+    <h1>Three-level success writer</h1>
+    <p class="lede">
+      Three runs of the Wayfarer support agent. Judge each one at all three levels before you look
+      at the answer. The point is not to score well. It is to notice that the levels disagree.
+    </p>
+  </header>
+
+  <div class="note" style="margin-top:26px">
+    <h4>What is real here and what is not</h4>
+    <p style="font-size:14.5px">
+      The tool calls in these three runs were chosen by a script, not by a language model, so that
+      each one demonstrates a specific disagreement between levels. Everything downstream of the
+      call is real: the permission layer really ran, the database was really queried, the denials
+      are real denials from <code>agent/permissions.py</code>, and the correct refund amounts come
+      from <code>data/world/rules.py</code>. Model-generated traces arrive in Lesson 3.
+      Token counts are placeholders and latency is meaningless at this scale, so neither is shown.
+    </p>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Pick a run</h2>
+      <span class="tag" id="case-teach"></span>
+    </div>
+    <div class="cases" id="cases" role="tablist"></div>
+
+    <h3 style="font-size:1rem;margin-bottom:9px">The customer wrote</h3>
+    <div class="msg" id="msg"></div>
+
+    <h3 style="font-size:1rem;margin:24px 0 9px">What the agent did</h3>
+    <div class="table-scroll"><div class="spans" id="spans"></div></div>
+
+    <h3 style="font-size:1rem;margin:24px 0 9px">What the agent said back</h3>
+    <div class="msg" id="final" style="border-left-color:var(--accent-line)"></div>
+  </section>
+
+  <section class="judge">
+    <div class="sec-head">
+      <h2>Your judgment</h2>
+      <span class="tag">pass or fail, all three</span>
+    </div>
+
+    <div class="level" data-level="outcome">
+      <h4>Outcome level</h4>
+      <p class="q">Did the customer end up in the state policy says they should be in?</p>
+      <div class="opts">
+        <button class="opt" data-v="pass" aria-pressed="false">Pass</button>
+        <button class="opt" data-v="fail" aria-pressed="false">Fail</button>
+      </div>
+      <div class="verdict"></div>
+    </div>
+
+    <div class="level" data-level="trajectory">
+      <h4>Trajectory level</h4>
+      <p class="q">Was the path acceptable? Authoritative sources consulted, no forbidden attempts.</p>
+      <div class="opts">
+        <button class="opt" data-v="pass" aria-pressed="false">Pass</button>
+        <button class="opt" data-v="fail" aria-pressed="false">Fail</button>
+      </div>
+      <div class="verdict"></div>
+    </div>
+
+    <div class="level" data-level="step">
+      <h4>Step level</h4>
+      <p class="q">Was every individual action permitted and returned without error?</p>
+      <div class="opts">
+        <button class="opt" data-v="pass" aria-pressed="false">Pass</button>
+        <button class="opt" data-v="fail" aria-pressed="false">Fail</button>
+      </div>
+      <div class="verdict"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="check" disabled>Check my answers</button>
+      <button class="btn ghost" id="reset">Reset</button>
+      <span class="score" id="score"></span>
+    </div>
+
+    <div id="ground" style="display:none">
+      <div class="note" style="margin-top:22px">
+        <h4>Ground truth, computed not labelled</h4>
+        <div class="truth" id="truth"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="wrapup" style="display:none">
+    <div class="sec-head"><h2>What this was for</h2><span class="tag">read after all three</span></div>
+    <p>
+      One run passed everywhere. One reached for an air label on a hazmat item and a refund beyond
+      its authority, was stopped by code both times, recovered, and produced a correct end state.
+      One did nothing forbidden at all and shortchanged a customer by $7.25.
+    </p>
+    <p>
+      An eval that reads only the final response scores the second run as a success and the third as
+      a success. It is wrong twice, in opposite directions, and its number will look fine.
+    </p>
+    <p>
+      Notice also what the permission layer did and did not do. It blocked the refund that was too
+      large. It permitted the refund that was too small. Every rule it enforces is about the
+      company's exposure, so it guards one direction only. It is a boundary, not an evaluator, and
+      the third run is what it looks like when a team confuses the two.
+    </p>
+    <p style="margin-top:18px">
+      <a class="btn" href="../lessons/01-foundations.html">Back to Lesson 1</a>
+    </p>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/01-foundations.html">&larr; L1 Foundations</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+
+  <footer>
+    Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.
+  </footer>
+
+</div>
+
+<script src="../data/seed-traces.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var data = window.SEED_TRACES;
+  if (!Array.isArray(data) || !data.length) {
+    document.getElementById("spans").innerHTML =
+      '<div style="padding:16px;font-family:var(--sans)">Trace data did not load. ' +
+      'Run <code>python scripts/build_seed_traces.py</code> from the repository root ' +
+      'to regenerate <code>docs/data/seed-traces.js</code>.</div>';
+    return;
+  }
+
+  // The answer key. Written here rather than derived, because "was this the
+  // right path" is a judgment about the specification, and pretending to
+  // compute it would be dishonest. The OUTCOME column is checkable against
+  // rules.py and the panel shows that comparison.
+  var KEY = {
+    clean: {
+      outcome: { v: "pass", why: "The decision, the fee, and the amount all match what rules.py computes for this line: eligible, new condition, no restocking fee, $49.00 refunded in full." },
+      trajectory: { v: "pass", why: "It looked the order up, asked check_return_eligibility for the authoritative decision instead of recalling policy, and used a label method the item allows." },
+      step: { v: "pass", why: "Three tool calls, all permitted, all returned ok. No denials." }
+    },
+    denied: {
+      outcome: { v: "pass", why: "The customer got the correct end state. Return approved, ground label issued as a hazmat item requires, and the $211.65 refund routed to a human because it exceeds the $200.00 auto-approve limit. Judged on the final response alone, this run is clean." },
+      trajectory: { v: "fail", why: "It reached for an air label on a hazmat item, then tried to pay $211.65 on its own authority. Both were refused in code. The correct end state was produced by the permission layer catching it, not by the agent knowing better. Remove the gate and this run causes two incidents." },
+      step: { v: "fail", why: "Two of six tool calls were denied: create_return_label with method air (hazmat_requires_ground_label) and issue_refund for 21165 cents (above_auto_approve_limit)." }
+    },
+    wrong_amount: {
+      outcome: { v: "fail", why: "The customer was refunded $14.50. rules.py computes $21.75 for this line: $29.00 gross less the 25 percent used-condition restocking fee. The agent invented a 50 percent fee and told the customer that figure as though it were policy. They are $7.25 short and were given a false reason." },
+      trajectory: { v: "fail", why: "It never called check_return_eligibility. It recalled the restocking policy from memory and got it wrong. The tool exists precisely so this cannot happen, and the system prompt tells it never to compute a refund by hand." },
+      step: { v: "pass", why: "Both tool calls were permitted and returned ok. This is the uncomfortable part: the gate checked amount against the computed line refund, the auto-approve limit, and the hard ceiling, and $14.50 satisfies all three. Every rule it enforces is about the company's exposure, and an under-refund creates none. Nothing in the permission layer has an opinion about shortchanging a customer." }
+    }
+  };
+
+  var LEVELS = ["outcome", "trajectory", "step"];
+  var byKey = {};
+  data.forEach(function (r) { byKey[r.case.key] = r; });
+
+  var current = data[0].case.key;
+  var picks = {};
+  var seen = {};
+
+  var elCases  = document.getElementById("cases");
+  var elMsg    = document.getElementById("msg");
+  var elSpans  = document.getElementById("spans");
+  var elFinal  = document.getElementById("final");
+  var elTeach  = document.getElementById("case-teach");
+  var elScore  = document.getElementById("score");
+  var elCheck  = document.getElementById("check");
+  var elGround = document.getElementById("ground");
+  var elTruth  = document.getElementById("truth");
+  var elWrap   = document.getElementById("wrapup");
+
+  function money(cents) {
+    return "$" + (cents / 100).toFixed(2);
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  data.forEach(function (r) {
+    var b = document.createElement("button");
+    b.className = "case-btn";
+    b.setAttribute("role", "tab");
+    b.dataset.key = r.case.key;
+    b.innerHTML = "<b>" + esc(r.case.title) + "</b><br>" +
+                  '<span style="color:var(--text-3)">' + esc(r.scenario.id) + "</span>";
+    b.addEventListener("click", function () { select(r.case.key); });
+    elCases.appendChild(b);
+  });
+
+  function renderSpans(rec) {
+    elSpans.innerHTML = "";
+    rec.spans.forEach(function (s) {
+      if (s.kind === "session") return;          // the root frames everything else
+      var row = document.createElement("div");
+      row.className = "span" + (s.status === "denied" ? " denied" : "");
+
+      var detail = "";
+      var a = s.attributes || {};
+      if (a.args && Object.keys(a.args).length) {
+        var parts = [];
+        Object.keys(a.args).forEach(function (k) {
+          var v = a.args[k];
+          if (k === "summary") return;           // long, and shown in the reply
+          if (k === "amount_cents") v = v + "  (" + money(v) + ")";
+          parts.push(k + "=" + v);
+        });
+        detail = parts.join("  ");
+      }
+      if (a.denied_reason) {
+        detail += (detail ? "  " : "") + "→ " + a.denied_reason;
+      }
+
+      row.innerHTML =
+        '<span class="k">' + esc(s.kind) + "</span>" +
+        '<span class="nm">' + esc(s.name) +
+        (detail ? '<span class="args">' + esc(detail) + "</span>" : "") +
+        "</span>" +
+        '<span class="st ' + esc(s.status) + '">' + esc(s.status) + "</span>";
+      elSpans.appendChild(row);
+    });
+  }
+
+  function select(key) {
+    current = key;
+    picks = {};
+    var rec = byKey[key];
+
+    Array.prototype.forEach.call(elCases.children, function (b) {
+      b.setAttribute("aria-selected", String(b.dataset.key === key));
+    });
+
+    elTeach.textContent = rec.case.teaches;
+    elMsg.textContent = rec.scenario.message;
+    elFinal.textContent = rec.final_response || "(the run ended without a final response)";
+    renderSpans(rec);
+
+    document.querySelectorAll(".level").forEach(function (lv) {
+      lv.querySelectorAll(".opt").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      var v = lv.querySelector(".verdict");
+      v.className = "verdict";
+      v.innerHTML = "";
+    });
+
+    elScore.textContent = "";
+    elCheck.disabled = true;
+    elGround.style.display = "none";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.querySelectorAll(".level").forEach(function (lv) {
+    var level = lv.dataset.level;
+    lv.querySelectorAll(".opt").forEach(function (opt) {
+      opt.addEventListener("click", function () {
+        lv.querySelectorAll(".opt").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+        opt.setAttribute("aria-pressed", "true");
+        picks[level] = opt.dataset.v;
+        elCheck.disabled = LEVELS.some(function (l) { return !picks[l]; });
+      });
+    });
+  });
+
+  elCheck.addEventListener("click", function () {
+    var key = KEY[current];
+    var right = 0;
+
+    LEVELS.forEach(function (level) {
+      var lv = document.querySelector('.level[data-level="' + level + '"]');
+      var v = lv.querySelector(".verdict");
+      var correct = picks[level] === key[level].v;
+      if (correct) right++;
+      v.className = "verdict show";
+      v.innerHTML =
+        '<span class="mark ' + (correct ? "right" : "wrong") + '">' +
+        (correct ? "correct" : "not quite") + "</span>" +
+        "<b>Answer: " + key[level].v + ".</b> " + esc(key[level].why);
+    });
+
+    elScore.textContent = right + " of 3";
+    seen[current] = true;
+
+    var rec = byKey[current];
+    var f = rec.expected.facts;
+    var lines = [
+      "<b>rules.py says for " + esc(rec.scenario.id) + "</b>",
+      "decision        " + esc(rec.expected.decision),
+      "reasons         " + esc(rec.expected.reasons.join(", ") || "none"),
+      "condition       " + esc(f.condition),
+      "days since      " + f.days_since_delivery + " of " + f.window_days + " allowed"
+    ];
+    if (f.refund_cents !== undefined) {
+      lines.push("gross           " + money(f.gross_cents));
+      lines.push("restock fee     " + f.restock_fee_pct + "%  (" + money(f.restock_fee_cents) + ")");
+      lines.push("correct refund  " + money(f.refund_cents));
+    }
+    lines.push("denials         " + rec.totals.permission_denials);
+    elTruth.innerHTML = lines.join("<br>");
+    elGround.style.display = "";
+
+    if (Object.keys(seen).length === data.length) elWrap.style.display = "";
+  });
+
+  document.getElementById("reset").addEventListener("click", function () { select(current); });
+
+  select(current);
+})();
+</script>
+</body>
+</html>
