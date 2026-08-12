@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+
+# The world database is generated and byte-reproducible from facts.yaml, so it
+# is not committed. `make world` rebuilds it identically on any machine.
+data/world/wayfarer.db
+
+# Traces are large and produced by a paid API run. The curated corpus that
+# ships with the course lives under docs/data/ and IS committed.
+runs/
+*.local.json

@@ -1,0 +1,16 @@
+{
+  "customers": 240,
+  "products": 80,
+  "orders": 900,
+  "order_items": 2252,
+  "shipments": 900,
+  "returns": 120,
+  "final_sale_products": 9,
+  "hazmat_products": 18,
+  "lifetime_products": 27,
+  "recalled_products": 2,
+  "delivered_orders": 720,
+  "pending_orders": 67,
+  "damaged_items": 128,
+  "sha256": "35147e345c2fc5d3970b5e8d588d55b5df1b7f9ef35c0e76628e849f6aba9c13"
+}

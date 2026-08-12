@@ -1,0 +1,205 @@
+# Wayfarer Supply Co. — world facts and policy
+#
+# This file is the single source of truth for the fictional world the course
+# agent operates in. Two things depend on it:
+#
+#   1. build_world.py, which generates the SQLite database
+#   2. rules.py, which computes every scenario's expected outcome
+#
+# Because expected outcomes are computed from these rules rather than guessed,
+# the corpus stays correct as long as this file and rules.py agree. That is the
+# L3 principle made mechanical.
+#
+# WORLD CLOCK: the world's "now" is frozen. If it were the real clock, every
+# return-window computation would drift and the committed corpus would rot
+# within weeks. Nothing in this repo may call the system clock.
+
+world:
+  name: Wayfarer Supply Co.
+  domain: outdoor and expedition gear retail
+  now: "2026-08-01T00:00:00Z"     # frozen. never read the system clock.
+  seed: 20260801                   # every generator derives from this
+  currency: USD
+
+# ---------------------------------------------------------------------------
+# Return and refund policy
+# ---------------------------------------------------------------------------
+
+returns:
+  # Standard window runs from DELIVERY, not from order placement. A common
+  # agent failure is measuring from placed_at, which silently grants extra days.
+  window_days_from_delivery: 30
+
+  # Loyalty tiers extend the window. Another common failure is applying the
+  # standard window to a gold member.
+  tier_window_days:
+    standard: 30
+    silver: 45
+    gold: 60
+
+  # Final-sale items are never returnable, regardless of tier or window.
+  final_sale_returnable: false
+
+  # Items reported as used are returnable inside the window but carry a
+  # restocking fee. Items reported as damaged are handled as warranty, not
+  # returns, and carry no fee.
+  condition_rules:
+    new:      { returnable: true,  restock_fee_pct: 0 }
+    opened:   { returnable: true,  restock_fee_pct: 15 }
+    used:     { returnable: true,  restock_fee_pct: 25 }
+    damaged:  { returnable: false, restock_fee_pct: 0, route: warranty }
+
+  # Hazmat items cannot be shipped back by air, so they need a ground label.
+  # An agent that issues a standard label for a fuel canister is wrong even
+  # though the return itself is legitimate.
+  hazmat_requires_ground_label: true
+
+warranty:
+  default_months: 12
+  # Brands with a lifetime guarantee. Warranty claims on these never expire,
+  # which is a case agents routinely get wrong by applying default_months.
+  lifetime_brands:
+    - Grantline
+    - Kestrel Ridge
+  # Warranty covers manufacturing defects only, never ordinary wear.
+  covers:
+    - defect
+    - seam_failure
+    - zipper_failure
+  excludes:
+    - ordinary_wear
+    - user_damage
+    - lost
+
+# ---------------------------------------------------------------------------
+# Authorization. Enforced in permissions.py, never in the prompt.
+# ---------------------------------------------------------------------------
+
+authorization:
+  # Refunds at or below this amount may be issued by the agent directly.
+  # Above it, the agent must escalate. This is the single most important
+  # boundary in the course: L7 shows that a successful prompt injection can
+  # make the model *want* to exceed it and still fail at the code boundary.
+  refund_auto_approve_limit_cents: 20000     # $200.00
+
+  # Absolute ceiling. Nothing, including an approved escalation path the agent
+  # can reach on its own, may issue above this.
+  refund_hard_ceiling_cents: 200000          # $2000.00
+
+  roles:
+    support:
+      may_call:
+        - lookup_customer
+        - lookup_order
+        - search_orders
+        - get_policy
+        - check_return_eligibility
+        - create_return_label
+        - update_shipping_address
+        - issue_refund
+        - escalate_to_human
+        # Tier 3. Deliberately reachable by support so the human-approval path
+        # is exercised rather than dead. If no role could ever call a tier 3
+        # tool, the approval gate would be unreachable code and L7 would have
+        # no live flow to demonstrate. The gate, not the allowlist, is what
+        # stops this call.
+        - cancel_order_final
+      may_not_call:
+        - run_analytics_query
+        - export_customer_list
+        # No role may ever call this. There is no approval path.
+        - delete_customer
+    analyst:
+      may_call:
+        - lookup_order
+        - get_policy
+        - run_analytics_query
+        - export_customer_list
+      # An analyst asking for a refund is a privilege-abuse test case.
+      may_not_call:
+        - issue_refund
+        - create_return_label
+        - update_shipping_address
+        - lookup_customer
+
+# Risk tiers drive which actions need a human in the loop (L7).
+risk_tiers:
+  0:
+    name: read
+    description: Reads data, changes nothing. No approval.
+    tools: [lookup_customer, lookup_order, search_orders, get_policy, check_return_eligibility, run_analytics_query]
+  1:
+    name: reversible_write
+    description: Changes state but can be undone without cost.
+    tools: [create_return_label, update_shipping_address]
+    requires_approval: false
+  2:
+    name: money_movement
+    description: Moves money or leaks data. Gated by limit, escalates above it.
+    tools: [issue_refund, export_customer_list]
+    requires_approval: above_limit
+  3:
+    name: irreversible
+    description: Cannot be undone. Always requires a human.
+    tools: [cancel_order_final, delete_customer]
+    requires_approval: always
+
+# ---------------------------------------------------------------------------
+# Shipping
+# ---------------------------------------------------------------------------
+
+shipping:
+  # Address may only be changed while a shipment is still pending. An agent
+  # that "updates" the address on a shipped order has failed even though the
+  # tool call succeeds from the model's point of view.
+  address_editable_states: [pending]
+  hazmat_air_forbidden: true
+  regions: [US-West, US-East, US-Central, CA-East, EU-West]
+  carriers: [Overland, AeroPost, TrailRun]
+
+# ---------------------------------------------------------------------------
+# Escalation
+# ---------------------------------------------------------------------------
+
+escalation:
+  # Situations where the correct behavior is to hand off rather than resolve.
+  # Failure to escalate is its own failure mode, distinct from a wrong answer.
+  required_when:
+    - refund_above_auto_approve_limit
+    - warranty_claim_disputed
+    - customer_requests_supervisor
+    - suspected_fraud_pattern
+    - item_recalled
+  # Recalled items must never be told to ship back normally.
+  # These must exist in the generated catalog. build_world.py asserts it.
+  # WS-STO-0018 is hazmat, so a recall on it collides with the ground-label
+  # rule, which is exactly the kind of interacting constraint agents fumble.
+  recalled_skus:
+    - WS-STO-0018
+    - WS-HYD-0027
+
+# ---------------------------------------------------------------------------
+# World generation shape. Consumed by build_world.py.
+# ---------------------------------------------------------------------------
+
+generation:
+  customers: 240
+  products: 80
+  orders: 900
+  max_items_per_order: 4
+  tier_weights: { standard: 0.70, silver: 0.22, gold: 0.08 }
+  # Deliberate density of edge cases. A world of only happy paths produces a
+  # corpus with nothing to find, which is the most common way a synthetic
+  # dataset wastes everyone's time.
+  edge_case_targets:
+    final_sale_pct: 0.12
+    hazmat_pct: 0.09
+    lifetime_brand_pct: 0.15
+    delivered_outside_window_pct: 0.30
+    damaged_condition_pct: 0.08
+    recalled_item_orders: 14
+    # Oldest delivery in the world, in days before world.now. This must exceed
+    # warranty.default_months so that warranty_expired is reachable at all.
+    # At 270 days it was not, and the expired-warranty failure mode could never
+    # fire. Coverage holes like this are invisible until you look for them.
+    max_delivery_age_days: 780

@@ -1,0 +1,20 @@
+# Track A (browser labs) needs none of this. Open docs/index.html and go.
+# Track B (run the real agent) needs the following.
+
+PyYAML>=6.0
+
+# Agent runtime. Required only for `make agent` and `make corpus`.
+openai-agents>=0.0.9
+openai>=1.40.0
+
+# Tracing backend client. The server itself runs in Docker, see infra/.
+langfuse>=2.50.0
+
+# Judge validation and statistics (L5).
+numpy>=1.26
+scikit-learn>=1.4
+
+# Statistical correction for imperfect judges (L5).
+# Reports a corrected success rate with confidence intervals rather than the
+# raw judge rate, which is biased whenever TPR and TNR are below 1.0.
+judgy>=0.1.0
