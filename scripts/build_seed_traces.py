@@ -68,6 +68,59 @@ OUT = ROOT / "docs" / "data" / "seed-traces.json"
 FACTS = ROOT / "data" / "world" / "facts.yaml"
 
 
+def normalize(record: dict, case_key: str) -> dict:
+    """Strip the two things that make an otherwise identical run differ.
+
+    A live trace carries random span ids and real wall-clock durations, and it
+    should: those record what actually happened during a run. But this file is
+    a committed artifact that CI checks for staleness, and an artifact that
+    changes on every regeneration can never be checked. It would also mean a
+    noisy diff on every commit that touches anything nearby.
+
+    So the ids become positional and the durations are dropped. Neither is used
+    by the lab, and neither means anything here anyway: the scripted client
+    returns instantly, so a duration of 0.35ms measures Python function call
+    overhead and nothing else. Publishing that as if it were agent latency
+    would be worse than publishing nothing.
+
+    Real traces keep their real ids and timings. This is a property of the
+    committed lab fixture, not of the tracing layer.
+    """
+    ids: dict[str, str] = {}
+
+    def rename(old: str | None) -> str | None:
+        if old is None:
+            return None
+        if old not in ids:
+            ids[old] = f"{case_key}-s{len(ids):02d}"
+        return ids[old]
+
+    # Recursive rather than field-by-field. Timing fields turned up in three
+    # places on the first attempt: per span, in the totals, and inside event
+    # records nested under spans. Enumerating them by hand meant the next field
+    # added to the trace schema would silently reintroduce the drift, and the
+    # staleness gate would start failing on an unrelated commit.
+    VOLATILE = ("duration_ms", "at_ms", "started_ms", "ended_ms")
+
+    def scrub(node):
+        if isinstance(node, list):
+            for item in node:
+                scrub(item)
+        elif isinstance(node, dict):
+            for field in VOLATILE:
+                node.pop(field, None)
+            if "span_id" in node:
+                node["span_id"] = rename(node["span_id"])
+            if "parent_id" in node:
+                node["parent_id"] = rename(node["parent_id"])
+            for value in node.values():
+                scrub(value)
+
+    scrub(record)
+    record["trace_id"] = f"seed-{case_key}"
+    return record
+
+
 def load(scenario_id: str) -> dict:
     for line in SCENARIOS.read_text().splitlines():
         row = json.loads(line)
@@ -210,7 +263,11 @@ def main() -> int:
         # anyone having labelled anything by hand.
         record["expected"] = scenario["expected"]
         record["totals"] = trace.totals
-        out.append(record)
+        # Last, after every field is attached. Normalizing earlier scrubbed the
+        # spans and then trace.totals put a fresh wall-clock duration straight
+        # back in, which is how the first version of this defeated its own
+        # reproducibility gate.
+        out.append(normalize(record, case["key"]))
 
     # Guards. If these ever stop holding, the lab silently stops teaching.
     by_key = {r["case"]["key"]: r for r in out}

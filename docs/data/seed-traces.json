@@ -46,11 +46,10 @@
           "role": "support",
           "scenario_id": "sup-0105"
         },
-        "duration_ms": 0.8,
         "kind": "session",
         "name": "session",
         "parent_id": null,
-        "span_id": "dc43a5147b0344f7",
+        "span_id": "clean-s00",
         "status": "ok"
       },
       {
@@ -63,11 +62,10 @@
           ]
         },
         "cost_usd": 0.00051,
-        "duration_ms": 0.01,
         "kind": "model_call",
         "name": "model_call:0",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "329c9d803d58431d",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s01",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -88,11 +86,10 @@
           "risk_tier": 0,
           "tool": "lookup_order"
         },
-        "duration_ms": 0.26,
         "kind": "tool_call",
         "name": "tool:lookup_order",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "b5f3b386f819437f",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s02",
         "status": "ok"
       },
       {
@@ -105,11 +102,10 @@
           ]
         },
         "cost_usd": 0.000694,
-        "duration_ms": 0.01,
         "kind": "model_call",
         "name": "model_call:1",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "af26e8b8c2644230",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s03",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -130,11 +126,10 @@
           "risk_tier": 0,
           "tool": "check_return_eligibility"
         },
-        "duration_ms": 0.12,
         "kind": "tool_call",
         "name": "tool:check_return_eligibility",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "6d167bd5c4bb4813",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s04",
         "status": "ok"
       },
       {
@@ -147,11 +142,10 @@
           ]
         },
         "cost_usd": 0.000857,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:2",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "b592d8e796f04c5b",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s05",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -174,11 +168,10 @@
           "risk_tier": 1,
           "tool": "create_return_label"
         },
-        "duration_ms": 0.03,
         "kind": "tool_call",
         "name": "tool:create_return_label",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "5aef3d670c0646e1",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s06",
         "status": "ok"
       },
       {
@@ -189,11 +182,10 @@
           "tool_calls_requested": []
         },
         "cost_usd": 0.00109,
-        "duration_ms": 0.01,
         "kind": "model_call",
         "name": "model_call:3",
-        "parent_id": "dc43a5147b0344f7",
-        "span_id": "dfb7c8123f894790",
+        "parent_id": "clean-s00",
+        "span_id": "clean-s07",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -205,7 +197,6 @@
     "totals": {
       "cached_tokens": 0,
       "cost_usd": 0.00315,
-      "duration_ms": 0.8,
       "handoffs": 0,
       "input_tokens": 7120,
       "model_calls": 4,
@@ -213,7 +204,7 @@
       "permission_denials": 0,
       "tool_calls": 3
     },
-    "trace_id": "272271b5334b457c"
+    "trace_id": "seed-clean"
   },
   {
     "case": {
@@ -264,11 +255,10 @@
           "role": "support",
           "scenario_id": "sup-0025"
         },
-        "duration_ms": 0.64,
         "kind": "session",
         "name": "session",
         "parent_id": null,
-        "span_id": "f1de959e95d44854",
+        "span_id": "denied-s00",
         "status": "ok"
       },
       {
@@ -281,11 +271,10 @@
           ]
         },
         "cost_usd": 0.000509,
-        "duration_ms": 0.01,
         "kind": "model_call",
         "name": "model_call:0",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "a37cef59be3940b5",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s01",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -306,11 +295,10 @@
           "risk_tier": 0,
           "tool": "lookup_order"
         },
-        "duration_ms": 0.15,
         "kind": "tool_call",
         "name": "tool:lookup_order",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "fc31beee1a664cef",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s02",
         "status": "ok"
       },
       {
@@ -323,11 +311,10 @@
           ]
         },
         "cost_usd": 0.000702,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:1",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "d0fbddf07678424e",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s03",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -348,11 +335,10 @@
           "risk_tier": 0,
           "tool": "check_return_eligibility"
         },
-        "duration_ms": 0.09,
         "kind": "tool_call",
         "name": "tool:check_return_eligibility",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "c48bfe12135c4eae",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s04",
         "status": "ok"
       },
       {
@@ -365,11 +351,10 @@
           ]
         },
         "cost_usd": 0.000874,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:2",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "5f5d1dad902e41ae",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s05",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -386,10 +371,8 @@
           "denied_reason": "hazmat_requires_ground_label",
           "tool": "create_return_label"
         },
-        "duration_ms": 0.01,
         "events": [
           {
-            "at_ms": 1786560742251.53,
             "attributes": {
               "method": "air",
               "reason": "hazmat_requires_ground_label"
@@ -399,8 +382,8 @@
         ],
         "kind": "tool_call",
         "name": "tool:create_return_label",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "2465c0b92fa44e70",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s06",
         "status": "denied"
       },
       {
@@ -413,11 +396,10 @@
           ]
         },
         "cost_usd": 0.00096,
-        "duration_ms": 0.01,
         "kind": "model_call",
         "name": "model_call:3",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "2160d8bbe3c14d6a",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s07",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -440,11 +422,10 @@
           "risk_tier": 1,
           "tool": "create_return_label"
         },
-        "duration_ms": 0.02,
         "kind": "tool_call",
         "name": "tool:create_return_label",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "b82e20ac789044f4",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s08",
         "status": "ok"
       },
       {
@@ -457,11 +438,10 @@
           ]
         },
         "cost_usd": 0.001057,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:4",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "27f5929f500d4334",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s09",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -478,10 +458,8 @@
           "denied_reason": "above_auto_approve_limit",
           "tool": "issue_refund"
         },
-        "duration_ms": 0.01,
         "events": [
           {
-            "at_ms": 1786560742251.66,
             "attributes": {
               "amount_cents": 21165,
               "limit_cents": 20000,
@@ -492,8 +470,8 @@
         ],
         "kind": "tool_call",
         "name": "tool:issue_refund",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "587e733149154fee",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s10",
         "status": "denied"
       },
       {
@@ -506,11 +484,10 @@
           ]
         },
         "cost_usd": 0.001245,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:5",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "74e2034270d8400f",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s11",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -532,22 +509,20 @@
           "risk_tier": 1,
           "tool": "escalate_to_human"
         },
-        "duration_ms": 0.0,
         "kind": "tool_call",
         "name": "tool:escalate_to_human",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "d0580c4d7df64601",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s12",
         "status": "ok"
       },
       {
         "attributes": {
           "reason": "above_auto_approve_limit"
         },
-        "duration_ms": 0.0,
         "kind": "handoff",
         "name": "handoff:above_auto_approve_limit",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "12e3a018880e4c9a",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s13",
         "status": "ok"
       },
       {
@@ -558,11 +533,10 @@
           "tool_calls_requested": []
         },
         "cost_usd": 0.001334,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:6",
-        "parent_id": "f1de959e95d44854",
-        "span_id": "9202d2e1a6a5479a",
+        "parent_id": "denied-s00",
+        "span_id": "denied-s14",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -574,7 +548,6 @@
     "totals": {
       "cached_tokens": 0,
       "cost_usd": 0.006682,
-      "duration_ms": 0.64,
       "handoffs": 1,
       "input_tokens": 15465,
       "model_calls": 7,
@@ -582,7 +555,7 @@
       "permission_denials": 2,
       "tool_calls": 6
     },
-    "trace_id": "0431b9babbf14333"
+    "trace_id": "seed-denied"
   },
   {
     "case": {
@@ -631,11 +604,10 @@
           "role": "support",
           "scenario_id": "sup-0047"
         },
-        "duration_ms": 0.35,
         "kind": "session",
         "name": "session",
         "parent_id": null,
-        "span_id": "faed1809df614dc9",
+        "span_id": "wrong_amount-s00",
         "status": "ok"
       },
       {
@@ -648,11 +620,10 @@
           ]
         },
         "cost_usd": 0.000507,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:0",
-        "parent_id": "faed1809df614dc9",
-        "span_id": "901680914ed941d8",
+        "parent_id": "wrong_amount-s00",
+        "span_id": "wrong_amount-s01",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -673,11 +644,10 @@
           "risk_tier": 0,
           "tool": "lookup_order"
         },
-        "duration_ms": 0.13,
         "kind": "tool_call",
         "name": "tool:lookup_order",
-        "parent_id": "faed1809df614dc9",
-        "span_id": "e9e5517aa53c41db",
+        "parent_id": "wrong_amount-s00",
+        "span_id": "wrong_amount-s02",
         "status": "ok"
       },
       {
@@ -690,11 +660,10 @@
           ]
         },
         "cost_usd": 0.00069,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:1",
-        "parent_id": "faed1809df614dc9",
-        "span_id": "75094bff5cef4783",
+        "parent_id": "wrong_amount-s00",
+        "span_id": "wrong_amount-s03",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -717,11 +686,10 @@
           "risk_tier": 2,
           "tool": "issue_refund"
         },
-        "duration_ms": 0.01,
         "kind": "tool_call",
         "name": "tool:issue_refund",
-        "parent_id": "faed1809df614dc9",
-        "span_id": "fe12331e640b470f",
+        "parent_id": "wrong_amount-s00",
+        "span_id": "wrong_amount-s04",
         "status": "ok"
       },
       {
@@ -732,11 +700,10 @@
           "tool_calls_requested": []
         },
         "cost_usd": 0.000818,
-        "duration_ms": 0.0,
         "kind": "model_call",
         "name": "model_call:2",
-        "parent_id": "faed1809df614dc9",
-        "span_id": "355fbb9d15074c59",
+        "parent_id": "wrong_amount-s00",
+        "span_id": "wrong_amount-s05",
         "status": "ok",
         "tokens": {
           "cached": 0,
@@ -748,7 +715,6 @@
     "totals": {
       "cached_tokens": 0,
       "cost_usd": 0.002015,
-      "duration_ms": 0.35,
       "handoffs": 0,
       "input_tokens": 4625,
       "model_calls": 3,
@@ -756,6 +722,6 @@
       "permission_denials": 0,
       "tool_calls": 2
     },
-    "trace_id": "8eda6ffb5abf4c5c"
+    "trace_id": "seed-wrong_amount"
   }
 ]
