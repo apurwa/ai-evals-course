@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world scenarios check check-coverage check-permissions clean
+.PHONY: help world scenarios check check-coverage check-permissions check-agent clean
 
 help:
 	@echo "Wayfarer AI Evals Course"
@@ -20,9 +20,14 @@ scenarios:
 	$(PY) scripts/build_scenarios.py
 
 # Every gate that runs without an API key. Wired into CI.
-check: world check-coverage check-permissions scenarios
+check: world check-coverage check-permissions scenarios check-agent
 	@echo ""
 	@echo "all gates passed"
+
+check-agent:
+	@echo ""
+	@echo "=== agent: loop, permission gate, and trace shape ==="
+	@$(PY) agent/support_agent.py --selftest
 
 check-coverage:
 	@echo ""

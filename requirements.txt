@@ -3,8 +3,10 @@
 
 PyYAML>=6.0
 
-# Agent runtime. Required only for `make agent` and `make corpus`.
-openai-agents>=0.0.9
+# Agent runtime. Required only for `make corpus` and running a live scenario.
+# The control loop is written out explicitly in agent/support_agent.py rather
+# than delegated to an agent framework, so only the base SDK is needed. See the
+# module docstring for why.
 openai>=1.40.0
 
 # Tracing backend client. The server itself runs in Docker, see infra/.

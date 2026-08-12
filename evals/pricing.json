@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "Token prices, per million tokens, used by the L9 cost lab.",
+    "",
+    "These are NOT verified. Provider pricing changes, and a stale table",
+    "produces confident wrong numbers, which is worse than no numbers at all.",
+    "The loader prints a warning on every run while 'verified' is false.",
+    "",
+    "To verify: check the provider's current pricing page, update the values,",
+    "set verified to true, and set checked_on to today. The cost lab reports",
+    "that date alongside every figure so nobody reads a number without knowing",
+    "how old its assumptions are."
+  ],
+  "verified": false,
+  "checked_on": null,
+  "currency": "USD",
+  "models": {
+    "gpt-4.1-mini": {
+      "input_per_m": 0.40,
+      "output_per_m": 1.60,
+      "cached_input_per_m": 0.10,
+      "tier": "mid",
+      "note": "Default for corpus generation. Chosen deliberately: see below."
+    },
+    "gpt-4.1": {
+      "input_per_m": 2.00,
+      "output_per_m": 8.00,
+      "cached_input_per_m": 0.50,
+      "tier": "frontier"
+    },
+    "gpt-4o-mini": {
+      "input_per_m": 0.15,
+      "output_per_m": 0.60,
+      "cached_input_per_m": 0.075,
+      "tier": "small"
+    }
+  },
+  "_corpus_model_rationale": [
+    "The corpus is generated with a mid-tier model on purpose, and the reason",
+    "is pedagogical before it is financial.",
+    "",
+    "A frontier model handles most of these support cases correctly. A corpus",
+    "where the agent rarely fails gives Module 2 almost nothing to find, and",
+    "error analysis on a near-perfect trace set teaches the wrong lesson: that",
+    "the method is not worth the effort.",
+    "",
+    "A mid-tier model fails at a rate that makes the failure modes in SPEC.md",
+    "section 7 actually appear, at a density where saturation is reachable in",
+    "the 60 traces the L5 homework asks for. It is also cheaper, which is a",
+    "convenient second-order benefit rather than the reason."
+  ]
+}
