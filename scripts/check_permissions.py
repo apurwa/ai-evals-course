@@ -32,6 +32,20 @@ from permissions import PermissionLayer  # noqa: E402
 
 FACTS = ROOT / "data" / "world" / "facts.yaml"
 
+# Arguments that should sail through every gate, per tool. The reachability
+# sweep below needs a benign call for tools whose decision depends on args.
+# Anything not listed here is called with no arguments.
+#
+# These are deliberately the easy cases. This sweep asks "can this tool ever be
+# called at all", not "is the gate correct", which is what the 104-case sweep
+# above is for.
+SAFE_PROBE_ARGS: dict[str, dict] = {
+    "create_return_label": {"is_hazmat": False, "method": "ground"},
+    "update_shipping_address": {"shipment_status": "pending"},
+    "issue_refund": {"amount_cents": 5000, "computed_refund_cents": 5000},
+    "export_customer_list": {"segment": "standard"},
+}
+
 
 def equivalent(rules_decision: str, allowed: bool, requires_approval: bool) -> bool:
     """Map a PermissionLayer Decision onto the rules vocabulary."""
@@ -121,7 +135,39 @@ def main() -> int:
          not support.authorize("issue_refund", {"amount_cents": 100.5}).allowed),
         ("role is not settable",
          not hasattr(type(support).role, "fset") or type(support).role.fset is None),
+
+        # The safe action must always be reachable. escalate_to_human was once
+        # missing from every risk tier, so it defaulted to tier 3, and tier 3
+        # always requires a human. The agent was structurally unable to
+        # escalate, which is the one thing policy requires of it whenever a
+        # refund exceeds its authority. Both existing assertions above were
+        # individually correct and neither caught it, because no test asked
+        # whether the escape hatch opens.
+        ("support can escalate", support.authorize("escalate_to_human", {}).allowed),
+        ("analyst can escalate", analyst.authorize("escalate_to_human", {}).allowed),
+        ("escalation is not tier 3", support.tier_of("escalate_to_human") < 3),
     ]
+
+    # The general form of that bug: a tool a role is allowed to call, that no
+    # tier classifies, is silently unreachable. Deny-by-default is the right
+    # posture, but it must be loud. Anything below tier 3 that a role may call
+    # has to actually be callable with clean arguments.
+    #
+    # cancel_order_final is deliberately tier 3 and deliberately in support's
+    # allowlist, so L7 has a live approval flow to demonstrate. It is expected
+    # to require a human, so it is excluded here by tier rather than by name.
+    for role_name, layer in layers.items():
+        allowed_tools = facts["authorization"]["roles"][role_name]["may_call"]
+        for tool in allowed_tools:
+            tier = layer.tier_of(tool)
+            if tier >= 3:
+                continue  # requires a human by design, checked separately
+            probe = SAFE_PROBE_ARGS.get(tool, {})
+            checks.append((
+                f"{role_name} can actually call {tool} (tier {tier})",
+                layer.authorize(tool, probe).allowed,
+            ))
+
     failed = []
     for label, ok in checks:
         print(f"  {'ok      ' if ok else 'FAILED  '} {label}")

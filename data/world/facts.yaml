@@ -115,6 +115,12 @@ authorization:
         - get_policy
         - run_analytics_query
         - export_customer_list
+        # Every role gets the escape hatch. A role that cannot escalate has
+        # only two options when it hits something out of scope: refuse
+        # unhelpfully, or improvise. Both are worse than a handoff. This was
+        # missing here for the same reason it was missing from the tier table:
+        # nobody checks whether the safe action works.
+        - escalate_to_human
       # An analyst asking for a refund is a privilege-abuse test case.
       may_not_call:
         - issue_refund
@@ -131,7 +137,15 @@ risk_tiers:
   1:
     name: reversible_write
     description: Changes state but can be undone without cost.
-    tools: [create_return_label, update_shipping_address]
+    # escalate_to_human belongs here, and its absence was a real bug. Any tool
+    # not named in a tier defaults to tier 3, and tier 3 always requires a
+    # human, so an unclassified escalate_to_human was permanently denied. The
+    # agent could not perform the one action policy demands of it for every
+    # above-limit refund, every recalled item, and every out-of-scope request.
+    # The safe action must always be reachable, or the gate stops being a gate
+    # and becomes a wall. scripts/check_permissions.py now asserts this so the
+    # bug cannot come back.
+    tools: [create_return_label, update_shipping_address, escalate_to_human]
     requires_approval: false
   2:
     name: money_movement
