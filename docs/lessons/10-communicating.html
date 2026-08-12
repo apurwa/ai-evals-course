@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L10 Talking About This Work</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Bonus &rsaquo; L10</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 10</span><span class="dot">/</span><span>Bonus</span><span class="dot">/</span><span>~45 min</span></div>
+    <h1>Talking About This Work</h1>
+    <p class="lede">
+      Explain an eval suite to someone who will fund it, staff it, or interview you about it.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can describe what you built, why each decision was made, and what you would do
+      differently, in the language of whoever is asking.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Doing excellent work nobody funds. Eval infrastructure is invisible when it succeeds:
+      the incident that did not happen generates no story. If you cannot articulate what a
+      regression would have cost, the budget goes to the feature with a demo.
+    </p>
+    <p>
+      In interviews the failure has a different shape. Candidates describe tools they used
+      rather than decisions they made. "We used LLM as a judge" says almost nothing. "We used a
+      judge for tone and code checks for everything decidable, because a model asked to count
+      tool calls is a slow and occasionally wrong <code>in</code> operator" says you have
+      actually done this.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Lead with the failure, not the method</dt>
+      <dd>"Our agent was refunding customers less than they were owed and every permission check
+        passed" gets attention. "We built an eval harness" does not.</dd>
+
+      <dt>Translate to money or risk</dt>
+      <dd>An under-refund at 3 percent of 40,000 monthly returns is a number a finance
+        director can act on. A TPR of 0.86 is not, until you convert it.</dd>
+
+      <dt>Show the decision, not the tool</dt>
+      <dd>The interesting content is always why you chose one thing over another and what it
+        cost you. Anyone can list libraries.</dd>
+
+      <dt>Name the limitation before you are asked</dt>
+      <dd>Saying "these traces are scripted, so the distribution is not what a real model
+        produces" builds more credibility than any result you could present. It also makes
+        everything else you say more believable.</dd>
+
+      <dt>The one-minute version</dt>
+      <dd>System, failure found, how you measured it, what changed, what you would do next.
+        Practise it out loud. It is the answer to at least four different interview questions.</dd>
+    </dl>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Audience</th><th>What they need</th><th>Do not lead with</th></tr>
+        <tr><td>Engineering manager</td><td>What breaks, how you know, what it costs to hold</td><td>Statistics</td></tr>
+        <tr><td>Product owner</td><td>Which failures reach customers and how often</td><td>Architecture</td></tr>
+        <tr><td>Finance or exec</td><td>Risk avoided, in currency</td><td>Anything technical</td></tr>
+        <tr><td>Interviewer</td><td>Decisions, trade-offs, what you would change</td><td>A tool list</td></tr>
+        <tr><td>Security review</td><td>Where the boundary is and who it protects</td><td>Model quality</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 10</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Interview drill and portfolio builder</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Twelve questions drawn from what you actually built in this course, with a rubric for
+        what a strong answer contains. Write your answers, save them locally, and assemble a
+        portfolio summary you can put in front of someone.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/10-interview.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <p>
+      Fork this repository, run the whole course on your own machine, and then make it yours:
+      change the world, change the policy, find failures this corpus does not contain. A fork
+      with your own scenarios and your own taxonomy is a far better portfolio piece than a
+      completed tutorial, because the interesting part is the judgment, and judgment only shows
+      when the answers were not provided.
+    </p>
+    <pre><code>make check                        # prove it works
+python scripts/build_lab_corpus.py
+# then change data/world/facts.yaml and see what breaks</code></pre>
+    <p>
+      Write down every gate that failed and why. That list is the most interesting artifact you
+      will produce, and it is the one nobody else's tutorial fork will have.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that you led with a failure, not a method.</b></li>
+      <li><b>Check that you named a limitation before being asked.</b> It is the fastest way to
+        be believed.</li>
+      <li><b>Check that your numbers have units somebody cares about.</b> Convert.</li>
+      <li><b>Check that you can say what you would do differently.</b> No answer here reads as
+        no reflection.</li>
+      <li><b>Check that you are not claiming a synthetic result as a measured one.</b> It will be
+        found out, and everything else you said goes with it.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Give the one-minute version of what you built, out loud, without notes.</li>
+      <li>Convert your worst failure mode into an annual cost. State your assumptions.</li>
+      <li>What is the weakest part of your eval suite, and what would you do with two more weeks?</li>
+      <li>Explain to a non-technical executive why 94 percent accuracy might mean nothing.</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="09-cost.html">&larr; L9 Cost</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

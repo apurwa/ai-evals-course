@@ -118,18 +118,18 @@ make check</code></pre>
       <div class="row">
         <span class="id">L2</span>
         <div>
-          <h4>Designing for Evaluability</h4>
+          <h4><a href="lessons/02-evaluability.html">Designing for Evaluability</a></h4>
           <p>Instrument before taking traffic, so every run leaves a trace you can actually read.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
       <div class="row">
         <span class="id">L3</span>
         <div>
-          <h4>Synthetic Data &amp; Scenarios</h4>
+          <h4><a href="lessons/03-synthetic-data.html">Synthetic Data &amp; Scenarios</a></h4>
           <p>Generate a workload you control, so ground truth exists by construction instead of by labelling.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
     </div>
 
@@ -141,18 +141,18 @@ make check</code></pre>
       <div class="row">
         <span class="id">L4</span>
         <div>
-          <h4>Error Analysis</h4>
+          <h4><a href="lessons/04-error-analysis.html">Error Analysis</a></h4>
           <p>Open and axial coding on real traces, run until the taxonomy stops growing.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
       <div class="row">
         <span class="id">L5</span>
         <div>
-          <h4>Automated Evaluators</h4>
+          <h4><a href="lessons/05-evaluators.html">Automated Evaluators</a></h4>
           <p>Build a judge, then prove it agrees with you before you trust a number it produces.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
     </div>
 
@@ -164,18 +164,18 @@ make check</code></pre>
       <div class="row">
         <span class="id">L6</span>
         <div>
-          <h4>Evaluating Agents</h4>
+          <h4><a href="lessons/06-agents.html">Evaluating Agents</a></h4>
           <p>Score trajectories, not just answers, and measure reliability separately from capability.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
       <div class="row">
         <span class="id">L7</span>
         <div>
-          <h4>CI, Gates &amp; Human Approval</h4>
+          <h4><a href="lessons/07-ci-gates.html">CI, Gates &amp; Human Approval</a></h4>
           <p>Turn a suite into a release gate, and put a human in front of the irreversible actions.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
     </div>
 
@@ -187,10 +187,10 @@ make check</code></pre>
       <div class="row">
         <span class="id">L8</span>
         <div>
-          <h4>Safety &amp; Red-Teaming</h4>
+          <h4><a href="lessons/08-safety.html">Safety &amp; Red-Teaming</a></h4>
           <p>Prompt injection has no reliable detector, so authorization has to hold in code.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
     </div>
 
@@ -202,28 +202,30 @@ make check</code></pre>
       <div class="row">
         <span class="id">L9</span>
         <div>
-          <h4>Cost, Latency &amp; the Improve Loop</h4>
+          <h4><a href="lessons/09-cost.html">Cost, Latency &amp; the Improve Loop</a></h4>
           <p>Find the accuracy and cost frontier, and change one thing at a time against a frozen test set.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
       <div class="row">
         <span class="id">L10</span>
         <div>
-          <h4>Bonus: Talking About This Work</h4>
+          <h4><a href="lessons/10-communicating.html">Bonus: Talking About This Work</a></h4>
           <p>Explain an eval suite to someone who will fund it, or interview you about it.</p>
         </div>
-        <span class="chip soon">Drafting</span>
+        <span class="chip live">Ready</span>
       </div>
     </div>
 
     <div class="note">
       <h4>Being straight with you about status</h4>
       <p style="font-size:14.5px">
-        Lesson 1 is written and its lab runs. The other nine are outlined and their machinery
-        (world, rules, permission layer, scenarios, agent, trace schema, correctness gates) is built and
-        tested, but the pages are not written yet. Anything marked <b>Drafting</b> is not a link,
-        deliberately, rather than a link to a stub.
+        All ten lessons and all ten browser labs are written and work. The labs run on a corpus
+        of 120 traces produced by the real control loop, the real permission layer and the real
+        database, but with <b>scripted</b> tool calls rather than model-generated ones. The
+        mechanics are real; the failure distribution is planted. Every lab says so on its own
+        page, and the local track replaces it with model-generated traces once you supply an API
+        key.
       </p>
     </div>
   </section>

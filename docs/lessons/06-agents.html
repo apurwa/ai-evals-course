@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L6 Evaluating Agents</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 3 &rsaquo; L6</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 6</span><span class="dot">/</span><span>Module 3</span><span class="dot">/</span><span>~55 min</span></div>
+    <h1>Evaluating Agents</h1>
+    <p class="lede">
+      Score the path, not just the destination, and measure whether the agent does the right
+      thing <i>every</i> time rather than <i>some</i> time.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can evaluate a multi-step agent at the trajectory level, and you can tell the
+      difference between a system that is capable and a system that is reliable.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Reporting <code>pass@k</code> and calling it quality. If you run each scenario five times
+      and count a scenario as passing when any run passed, you have measured whether the agent
+      <i>can</i> do the task. Your customer gets one attempt. They experience
+      <code>pass^k</code>, the probability it works every time, and those two numbers diverge
+      violently as soon as the agent is even slightly unreliable.
+    </p>
+    <p>
+      At 90 percent per-step success over five steps, the agent succeeds end to end 59 percent
+      of the time. Nothing in a per-step dashboard shows you that number, and per-step is what
+      most teams instrument.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Trajectory evaluation</dt>
+      <dd>Scoring the sequence of steps against what the sequence should have been. Not string
+        equality: there are usually several acceptable orders, and some steps are mandatory
+        while others are optional.</dd>
+
+      <dt>Required, forbidden, optional</dt>
+      <dd>The three categories that make trajectory scoring tractable. For a return:
+        <code>check_return_eligibility</code> is required, an air label on hazmat is forbidden,
+        <code>search_orders</code> is optional. Score against those, not against a golden
+        transcript.</dd>
+
+      <dt>pass@k, capability</dt>
+      <dd>The probability at least one of k attempts succeeds. Useful for research, and for
+        deciding whether a task is achievable at all.</dd>
+
+      <dt>pass^k, reliability</dt>
+      <dd>The probability all k attempts succeed. This is what a user with one shot experiences,
+        and it is what a product owner should be shown.</dd>
+
+      <dt>Compounding</dt>
+      <dd>Multi-step success multiplies. Five steps at 0.95 is 0.77 end to end. This is why
+        removing a step is often a bigger quality win than improving one.</dd>
+
+      <dt>Freeze and read once</dt>
+      <dd>Split scenarios 15 train, 40 dev, 45 test. Iterate on dev. Touch test at the very end,
+        once. A test set you have looked at twice is a dev set that is lying to you.</dd>
+    </dl>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>per-step success   0.95    0.90    0.80
+                   ----    ----    ----
+ 3 steps end-to-end 0.86    0.73    0.51
+ 5 steps            0.77    0.59    0.33
+ 8 steps            0.66    0.43    0.17
+
+every number in the top row looks fine on a dashboard.
+the bottom row is what the customer gets.</code></pre>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 6</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Trajectory scorer and the reliability gap</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Define required and forbidden steps per scenario kind, then score all 120 traces against
+        your definition and see where it disagrees with the labels. Then the second half: real
+        per-kind success rates from the corpus, plotted as pass@k against pass^k, so you can see
+        the gap rather than be told about it.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/06-trajectory.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>python scripts/build_lab_corpus.py
+python scripts/check_coverage.py     # coverage sampling is what L6 scores against</code></pre>
+    <p>
+      Implement your trajectory scorer in <code>evals/</code> against the coverage-sampled
+      scenarios, since those guarantee one case per dimension profile. Then split the scenario
+      set 15/40/45 and write the split to disk so it is stable across runs. A split regenerated
+      each run is not a split.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that you reported pass^k to anyone making a product decision.</b> pass@k
+        belongs in a research note, not a launch review.</li>
+      <li><b>Check that your trajectory scorer allows more than one correct order.</b> If it
+        does not, you are testing for a transcript and will fail every acceptable variation.</li>
+      <li><b>Check that a step budget exhaustion is scored as a failure</b>, not skipped because
+        the trace has no final answer to grade.</li>
+      <li><b>Check that you have not read the test set.</b> If you have, say so, and treat every
+        number from it as a dev number.</li>
+      <li><b>Check whether the fastest quality win is removing a step</b> rather than improving
+        one. Compounding usually says yes.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Your agent is 92 percent reliable per step over six steps. What does a customer see?</li>
+      <li>Why is a golden transcript a bad trajectory target, and what replaces it?</li>
+      <li>When is pass@k the number you actually want?</li>
+      <li>You have looked at your test set three times this month. What is it now?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="05-evaluators.html">&larr; L5 Evaluators</a>
+    <a href="07-ci-gates.html">L7 CI and Gates &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

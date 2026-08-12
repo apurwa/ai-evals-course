@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 5 Judge Playground</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .chk { display: grid; grid-template-columns: 26px 1fr auto; gap: 11px; align-items: start;
+    padding: 12px 14px; border-top: 1px solid var(--line-soft); cursor: pointer; }
+  .chk:first-child { border-top: none; }
+  .chk:hover { background: var(--surface-2); }
+  .chk input { margin-top: 3px; accent-color: var(--accent); }
+  .chk .nm { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--text); }
+  .chk .ds { display: block; font-size: 13px; color: var(--text-2); margin-top: 3px; }
+  .chk .fires { font-family: var(--mono); font-size: 11px; color: var(--text-3); white-space: nowrap; }
+  /* Which checks are pure code and which genuinely need a model. This is the
+     distinction L5 is built around, so it is worth showing on every row. */
+  .chk .nm::after { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+    border-radius: 3px; padding: 1px 5px; margin-left: 8px; vertical-align: 1px; }
+  .chk.code .nm::after { content: "code"; color: var(--ok); background: var(--ok-wash); border: 1px solid var(--ok-line); }
+  .chk.model .nm::after { content: "needs a model"; color: var(--signal); background: var(--signal-wash); border: 1px solid var(--signal-line); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/05-evaluators.html">L5</a> &rsaquo; Lab 5</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 5</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~35 min</span></div>
+    <h1>Judge playground</h1>
+    <p class="lede">
+      Build an evaluator from composable checks and watch it get scored against human labels
+      in real time. Start with the trap.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>Part 1: the useless judge</h2><span class="tag">real numbers, real corpus</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Here is a judge for <code>recall_not_flagged</code>, a critical safety failure. Its entire
+      implementation is <code>return "PASS"</code>. It never fires. Look at its accuracy.
+    </p>
+    <div class="lab-panel" style="margin-top:14px">
+      <div class="stat-row" id="trap"></div>
+    </div>
+    <div class="note warn">
+      <h4>Why this matters more than it looks</h4>
+      <p style="font-size:14.5px" id="trapNote"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 2: build a real one</h2><span class="tag">tick checks, watch the matrix</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Each check is a predicate evaluated over the real traces. The judge says FAIL if any
+      selected check fires. Ground truth is the corpus label. Aim for TPR and TNR both above
+      0.8, and notice how easy it is to move one by wrecking the other.
+    </p>
+
+    <div class="lab-panel" style="margin-top:16px">
+      <p style="font-size:12px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px">Available checks</p>
+      <div id="checks"></div>
+    </div>
+
+    <div class="grid-2" style="align-items:start">
+      <div>
+        <div class="matrix" id="matrix"></div>
+        <p style="font-size:12.5px;color:var(--text-3);margin-top:8px;font-family:var(--mono)">
+          positive class = "this run is broken"
+        </p>
+      </div>
+      <div class="lab-panel">
+        <div class="stat-row" id="metrics"></div>
+        <div id="verdict" style="margin-top:16px;font-size:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 3: what it costs you to be wrong</h2><span class="tag">bias correction</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      An imperfect judge reports a biased success rate. Given its TPR and TNR you can correct
+      for that. Below, the raw rate your judge would report versus the corrected estimate, using
+      the same arithmetic the <code>judgy</code> library performs.
+    </p>
+    <div class="lab-panel" style="margin-top:14px"><div class="stat-row" id="bias"></div></div>
+    <p id="biasNote" style="font-size:14px;color:var(--text-2);margin-top:12px"></p>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/05-evaluators.html">&larr; L5</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-corpus.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.LAB_CORPUS;
+  if (!C) { document.getElementById("checks").textContent = "corpus did not load; run make check"; return; }
+  var T = C.traces;
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+  function pct(x){ return (100*x).toFixed(1) + "%"; }
+
+  function tools(t) {
+    return t.spans.filter(function (s) { return s.kind === "tool_call"; })
+                  .map(function (s) { return (s.attributes || {}).tool; });
+  }
+  function refundArg(t) {
+    var v = null;
+    t.spans.forEach(function (s) {
+      if (s.kind === "tool_call" && (s.attributes || {}).tool === "issue_refund")
+        v = s.attributes.args.amount_cents;
+    });
+    return v;
+  }
+
+  // Every check is a real predicate over the trace. Nothing here is a stand-in.
+  var CHECKS = [
+    { id: "denial", kind: "code", nm: "any_permission_denial",
+      ds: "The run contains at least one denied tool call.",
+      f: function (t) { return t.totals.permission_denials > 0; } },
+
+    { id: "noelig", kind: "code", nm: "no_eligibility_check",
+      ds: "A returns or refund question answered without calling check_return_eligibility.",
+      f: function (t) {
+        return (t.scenario.kind === "return_request" || t.scenario.kind === "refund_request")
+          && tools(t).indexOf("check_return_eligibility") < 0; } },
+
+    { id: "amount", kind: "code", nm: "refund_amount_mismatch",
+      ds: "A refund was issued for an amount other than the one rules.py computes.",
+      f: function (t) {
+        var a = refundArg(t);
+        if (a === null) return false;
+        var want = (t.expected.facts || {}).refund_cents;
+        return want !== undefined && a !== want; } },
+
+    { id: "noesc", kind: "code", nm: "missing_escalation",
+      ds: "Policy required a handoff and no escalate_to_human span exists.",
+      f: function (t) {
+        return t.expected.decision === "escalate" && tools(t).indexOf("escalate_to_human") < 0; } },
+
+    { id: "pctclaim", kind: "model", nm: "quotes_unknown_percentage",
+      ds: "The reply states a percentage that is not one of the real restocking rates (0, 15, 25).",
+      f: function (t) {
+        var m = (t.final_response || "").match(/(\d+)\s*(%|percent)/i);
+        return !!m && ["0", "15", "25"].indexOf(m[1]) < 0; } },
+
+    { id: "nopolicy", kind: "code", nm: "no_policy_lookup",
+      ds: "A warranty question answered without calling get_policy.",
+      f: function (t) {
+        return t.scenario.kind === "warranty_claim" && tools(t).indexOf("get_policy") < 0; } },
+
+    { id: "short", kind: "code", nm: "very_short_reply",
+      ds: "Final response under 90 characters. A crude proxy for not answering.",
+      f: function (t) { return (t.final_response || "").length < 90; } },
+
+    { id: "notools", kind: "code", nm: "no_tool_calls_at_all",
+      ds: "The agent answered from nothing but the prompt.",
+      f: function (t) { return t.totals.tool_calls === 0; } },
+
+    { id: "anyrefund", kind: "code", nm: "issued_any_refund",
+      ds: "Fires on every refund. Included so you can see what a trigger-happy judge does.",
+      f: function (t) { return refundArg(t) !== null; } }
+  ];
+
+  // ---- Part 1: the trap, on real counts
+  var rare = T.filter(function (t) { return t.label.failure_mode === "recall_not_flagged"; }).length;
+  var trapAcc = (T.length - rare) / T.length;
+  document.getElementById("trap").innerHTML =
+    stat(pct(trapAcc), "accuracy", "good") +
+    stat("0.00", "TPR", "bad") +
+    stat("1.00", "TNR", "good") +
+    stat(rare, "missed entirely", "bad");
+  document.getElementById("trapNote").innerHTML =
+    "That accuracy is not a lie. " + (T.length - rare) + " of " + T.length + " traces really do " +
+    "lack this failure, and the judge really does get all of them right. It also catches <b>none</b> " +
+    "of the " + rare + " safety failures, which is the only thing anyone wanted it for. " +
+    "A number can be arithmetically correct and completely misleading, and this is the shape that " +
+    "takes. Report TPR and TNR.";
+
+  // ---- Part 2
+  var on = {};
+  var elC = document.getElementById("checks");
+  CHECKS.forEach(function (c) {
+    var fires = T.filter(c.f).length;
+    var row = document.createElement("label");
+    row.className = "chk " + c.kind;
+    row.innerHTML = '<input type="checkbox">' +
+      '<span><span class="nm">' + esc(c.nm) + "</span><span class=\"ds\">" + esc(c.ds) + "</span></span>" +
+      '<span class="fires">fires on ' + fires + "</span>";
+    var box = row.querySelector("input");
+    box.addEventListener("change", function () { on[c.id] = box.checked; score(); });
+    elC.appendChild(row);
+  });
+
+  function score() {
+    var active = CHECKS.filter(function (c) { return on[c.id]; });
+    var TP = 0, FP = 0, TN = 0, FN = 0;
+    T.forEach(function (t) {
+      var pred = active.length > 0 && active.some(function (c) { return c.f(t); });
+      var actual = !t.label.correct;
+      if (pred && actual) TP++;
+      else if (pred && !actual) FP++;
+      else if (!pred && actual) FN++;
+      else TN++;
+    });
+
+    document.getElementById("matrix").innerHTML =
+      '<div class="h"></div><div class="h">actually broken</div><div class="h">actually fine</div>' +
+      '<div class="h">judge: broken</div><div class="tp"><span class="big">' + TP + "</span>true positive</div>" +
+      '<div class="fp"><span class="big">' + FP + "</span>false alarm</div>" +
+      '<div class="h">judge: fine</div><div class="fn"><span class="big">' + FN + "</span>missed</div>" +
+      '<div class="tn"><span class="big">' + TN + "</span>true negative</div>";
+
+    var tpr = (TP + FN) ? TP / (TP + FN) : 0;
+    var tnr = (TN + FP) ? TN / (TN + FP) : 0;
+    var acc = (TP + TN) / T.length;
+
+    // Cohen's kappa
+    var n = T.length;
+    var po = acc;
+    var pe = ((TP + FP) * (TP + FN) + (FN + TN) * (FP + TN)) / (n * n);
+    var kappa = pe < 1 ? (po - pe) / (1 - pe) : 0;
+
+    document.getElementById("metrics").innerHTML =
+      stat(tpr.toFixed(2), "TPR", tpr >= 0.8 ? "good" : "bad") +
+      stat(tnr.toFixed(2), "TNR", tnr >= 0.8 ? "good" : "bad") +
+      stat(pct(acc), "accuracy") +
+      stat(kappa.toFixed(2), "kappa", kappa >= 0.6 ? "good" : "bad");
+
+    var v = "";
+    if (!active.length) {
+      v = "<b>No checks selected.</b> The judge says everything is fine, which is the Part 1 " +
+          "judge with extra steps. Tick something.";
+    } else if (tpr >= 0.8 && tnr >= 0.8 && kappa >= 0.6) {
+      v = '<b style="color:var(--ok)">This judge is usable.</b> Both rates clear 0.8 and kappa is ' +
+          "above 0.6. Before shipping it, validate on traces you did not tune against, because " +
+          "tuning and measuring on the same data tells you nothing.";
+    } else if (tpr < 0.8 && tnr >= 0.9) {
+      v = "<b>Too quiet.</b> It rarely false-alarms but misses " + FN + " real failures. " +
+          "Precision without recall is a judge that agrees with you about the easy cases.";
+    } else if (tnr < 0.8 && tpr >= 0.8) {
+      v = "<b>Too loud.</b> " + FP + " false alarms. A gate wired to this stops good releases, " +
+          "and a team that gets used to overriding a gate has no gate.";
+    } else if (kappa < 0.6) {
+      v = "<b>Kappa below 0.6.</b> Agreement is not much better than chance. The fix is almost " +
+          "never more labelling. It is that the criteria are ambiguous. Go back and sharpen them.";
+    } else {
+      v = "Neither rate is comfortable yet. Add a check that targets what you are missing, or " +
+          "remove one that is firing on healthy runs.";
+    }
+    document.getElementById("verdict").innerHTML = v;
+
+    // ---- Part 3: bias correction
+    var judgedPass = TN + FN;
+    var raw = judgedPass / T.length;
+    var trueRate = T.filter(function (t) { return t.label.correct; }).length / T.length;
+    // Rogan-Gladen style correction, same arithmetic judgy applies.
+    var denom = (tpr + tnr - 1);
+    var corrected = denom !== 0 ? ((1 - raw) - (1 - tnr)) / denom : NaN;
+    corrected = isNaN(corrected) ? null : Math.min(1, Math.max(0, 1 - corrected));
+
+    document.getElementById("bias").innerHTML =
+      stat(pct(raw), "judge reports") +
+      stat(corrected === null ? "n/a" : pct(corrected), "bias corrected") +
+      stat(pct(trueRate), "actual", "good");
+    document.getElementById("biasNote").innerHTML = active.length
+      ? "The judge would report a " + pct(raw) + " success rate. The real figure is " + pct(trueRate) +
+        ". The corrected estimate uses only TPR and TNR, which you can measure, and never the " +
+        "true rate, which in production you cannot. That is the whole trick: you do not need to " +
+        "know the answer, you need to know how wrong your instrument is."
+      : "Select some checks to see this.";
+  }
+
+  score();
+})();
+</script>
+</body>
+</html>

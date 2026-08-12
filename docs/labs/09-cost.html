@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 9 Cost Explorer</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .brk { display: grid; grid-template-columns: 190px 1fr 92px; gap: 12px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--line-soft); font-family: var(--mono); font-size: 12.5px; }
+  .brk:first-child { border-top: none; }
+  .brk .amt { text-align: right; color: var(--text-2); }
+  .cfg { display: grid; grid-template-columns: 1fr 84px 92px 108px; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line-soft); font-size: 13.5px; align-items: center; cursor: pointer; }
+  .cfg:first-child { border-top: none; }
+  .cfg:hover { background: var(--surface-2); }
+  .cfg .n { font-family: var(--mono); font-size: 12.5px; text-align: right; color: var(--text-2); }
+  .cfg .tag2 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; text-align: center; }
+  .cfg .tag2.front { color: var(--ok); background: var(--ok-wash); border: 1px solid var(--ok-line); }
+  .cfg .tag2.dom { color: var(--text-3); background: var(--surface-2); border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/09-cost.html">L9</a> &rsaquo; Lab 9</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 9</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~30 min</span></div>
+    <h1>Cost explorer</h1>
+    <p class="lede">
+      Where the money actually goes in 120 real traces, and then the choice nobody should make
+      by instinct: which point on the frontier your product needs.
+    </p>
+  </header>
+
+  <div class="note warn" style="margin-top:24px">
+    <h4>Which numbers are measurements</h4>
+    <p style="font-size:14.5px">
+      Part 1 is computed from the corpus: the arithmetic and the distribution are real, though
+      the token counts are placeholders because no model was called and the prices are marked
+      unverified. <b>Part 2 is not a measurement at all.</b> Nothing here has run against a
+      second model, so no accuracy figure in the configuration table was observed. They are
+      illustrative points for practising the reasoning. Do not quote them as evidence about real
+      models; <code>make corpus</code> replaces every one with a number you measured yourself.
+    </p>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Part 1: where it goes</h2><span class="tag">computed from the corpus</span></div>
+    <div class="lab-panel"><div class="stat-row" id="agg"></div></div>
+
+    <h3 style="font-size:1rem;margin:22px 0 8px">By span kind</h3>
+    <div class="table-scroll"><div id="byKind"></div></div>
+
+    <h3 style="font-size:1rem;margin:22px 0 8px">By model call index</h3>
+    <div class="table-scroll"><div id="byStep"></div></div>
+    <p id="stepNote" style="font-size:14.5px;color:var(--text-2);margin-top:12px"></p>
+
+    <h3 style="font-size:1rem;margin:22px 0 8px">By request kind</h3>
+    <div class="table-scroll"><div id="byScen"></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 2: the frontier</h2><span class="tag">illustrative, see the note</span></div>
+    <div class="lab-panel">
+      <svg class="chart" id="chart" viewBox="0 0 460 260" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="table-scroll"><div id="cfgs"></div></div>
+    <p style="font-size:13.5px;color:var(--text-3);margin-top:10px">
+      Dominated means some other configuration is at least as accurate and no more expensive.
+      Those are not trade-offs, they are mistakes, and they should leave the conversation.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 3: pick a point</h2><span class="tag">a product decision</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Three products, three tolerances for being wrong. Choose a configuration for each. There
+      is a defensible answer for each and it is not the same one.
+    </p>
+    <div id="quiz" style="margin-top:16px"></div>
+    <div class="actions">
+      <button class="btn" id="check" disabled>Check my reasoning</button>
+      <span class="score" id="score"></span>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/09-cost.html">&larr; L9</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-data.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.LAB_DATA && window.LAB_DATA.l9;
+  if (!D) { document.getElementById("byKind").textContent = "data did not load; run make check"; return; }
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+  function usd(n){ return "$" + n.toFixed(4); }
+
+  document.getElementById("agg").innerHTML =
+    stat(D.trace_count, "traces") +
+    stat(usd(D.total_cost), "total") +
+    stat(usd(D.total_cost / D.trace_count), "mean per trace") +
+    stat(usd(D.traces[0].cost), "most expensive");
+
+  function bars(el, obj, fmt) {
+    var keys = Object.keys(obj);
+    var max = 0; keys.forEach(function (k) { max = Math.max(max, obj[k]); });
+    document.getElementById(el).innerHTML = keys.map(function (k) {
+      var pctv = max ? Math.round(100 * obj[k] / max) : 0;
+      return '<div class="brk"><span>' + esc(fmt ? fmt(k) : k) + "</span>" +
+        '<span class="bar"><i style="width:' + pctv + '%"></i></span>' +
+        '<span class="amt">' + usd(obj[k]) + "</span></div>";
+    }).join("");
+  }
+
+  bars("byKind", D.by_span_kind);
+  bars("byStep", D.by_model_step, function (k) { return "model call " + k; });
+  bars("byScen", D.by_scenario_kind, function (k) { return k.replace(/_/g, " "); });
+
+  var steps = Object.keys(D.by_model_step);
+  var first = D.by_model_step[steps[0]] || 0;
+  var tot = steps.reduce(function (a, k) { return a + D.by_model_step[k]; }, 0);
+  var share = tot ? Math.round(100 * first / tot) : 0;
+  document.getElementById("stepNote").innerHTML =
+    "The first model call is <b>" + share + "%</b> of model spend here. " +
+    (share > 35
+      ? "When the first call dominates, the system prompt is the bill and prompt caching is the "
+      + "cheapest fix available. Swapping models is a bigger change with a worse ratio of effort to saving."
+      : "Spend is spread across later calls, which means context is growing each turn. The fix is what "
+      + "you carry forward between steps, not what you start with.");
+
+  // ---- Part 2 frontier
+  var CF = D.configs.slice();
+  CF.forEach(function (c) {
+    c.dominated = CF.some(function (o) {
+      return o !== c && o.accuracy >= c.accuracy && o.cost_per_1k <= c.cost_per_1k &&
+             (o.accuracy > c.accuracy || o.cost_per_1k < c.cost_per_1k);
+    });
+  });
+
+  var W=460,H=260,P=42;
+  var maxC = Math.max.apply(null, CF.map(function(c){return c.cost_per_1k;}));
+  function X(v){ return P + (W-P-16) * v / (maxC*1.05); }
+  function Y(v){ return H-P - (H-P-16) * (v-0.4)/0.6; }
+  var grid = "";
+  [0.5,0.6,0.7,0.8,0.9,1.0].forEach(function(v){
+    grid += '<line class="grid" x1="'+P+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-8)+'" y2="'+Y(v).toFixed(1)+'"/>' +
+            '<text class="lbl" x="8" y="'+(Y(v)+3).toFixed(1)+'">'+v.toFixed(1)+'</text>';
+  });
+  var pts = CF.map(function (c) {
+    return '<circle class="dot' + (c.dominated ? " sig" : "") + '" cx="' + X(c.cost_per_1k).toFixed(1) +
+      '" cy="' + Y(c.accuracy).toFixed(1) + '" r="4"><title>' + esc(c.name) + "</title></circle>";
+  }).join("");
+  var front = CF.filter(function(c){return !c.dominated;}).sort(function(a,b){return a.cost_per_1k-b.cost_per_1k;});
+  var path = front.map(function(c,i){ return (i?"L":"M")+X(c.cost_per_1k).toFixed(1)+" "+Y(c.accuracy).toFixed(1); }).join(" ");
+  document.getElementById("chart").innerHTML = grid +
+    '<line class="axis" x1="'+P+'" y1="'+(H-P)+'" x2="'+(W-8)+'" y2="'+(H-P)+'"/>' +
+    '<path class="ln" d="'+path+'"/>' + pts +
+    '<text class="lbl" x="'+(W/2-30)+'" y="'+(H-8)+'">cost per 1k runs (illustrative)</text>' +
+    '<text class="lbl" x="8" y="14">accuracy</text>';
+
+  document.getElementById("cfgs").innerHTML = CF.map(function (c) {
+    return '<div class="cfg"><span>' + esc(c.name) + '<br><span style="font-size:12px;color:var(--text-3)">' +
+      esc(c.note) + '</span></span><span class="n">' + c.accuracy.toFixed(2) + "</span>" +
+      '<span class="n">$' + c.cost_per_1k.toFixed(2) + "</span>" +
+      '<span class="tag2 ' + (c.dominated ? "dom" : "front") + '">' + (c.dominated ? "dominated" : "frontier") + "</span></div>";
+  }).join("");
+
+  // ---- Part 3
+  var Q = [
+    { q: "An internal tool used by twelve support staff who check every answer before it goes out.",
+      a: "mid-tier, 4 steps",
+      why: "A human reviews everything, so a wrong answer costs a few seconds rather than a customer. Buy the cheapest thing on the frontier and spend the difference elsewhere." },
+    { q: "A customer-facing agent that issues refunds without review, up to $200.",
+      a: "router: small then frontier",
+      why: "Money moves unsupervised, so accuracy matters, but paying frontier prices on every trivial 'where is my order' is waste. Route the hard cases up. This is the point of having a frontier rather than a single choice." },
+    { q: "A medical triage assistant. Being wrong has consequences that money cannot undo.",
+      a: "frontier, judge-gated retry",
+      why: "When the cost of an error is unbounded, the cost axis stops being the binding constraint. Buy the most accurate point available and treat the bill as the price of entry, or do not ship." }
+  ];
+  var picks = {}, elQ = document.getElementById("quiz");
+  Q.forEach(function (item, i) {
+    var d = document.createElement("div");
+    d.className = "lab-panel";
+    d.innerHTML = '<p style="font-size:14.5px;font-weight:600;margin-bottom:10px">' + esc(item.q) + "</p>";
+    var sel = document.createElement("select");
+    sel.innerHTML = '<option value="">choose a configuration</option>' +
+      CF.map(function (c) { return '<option value="' + esc(c.name) + '">' + esc(c.name) + "  (" + c.accuracy.toFixed(2) + ", $" + c.cost_per_1k.toFixed(2) + ")</option>"; }).join("");
+    sel.addEventListener("change", function () {
+      picks[i] = sel.value;
+      document.getElementById("check").disabled = Object.keys(picks).filter(function(k){return picks[k];}).length < Q.length;
+    });
+    d.appendChild(sel);
+    var v = document.createElement("div");
+    v.style.cssText = "display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:14px";
+    d.appendChild(v);
+    elQ.appendChild(d);
+  });
+
+  document.getElementById("check").addEventListener("click", function () {
+    var right = 0;
+    Array.prototype.forEach.call(elQ.children, function (d, i) {
+      var ok = picks[i] === Q[i].a;
+      if (ok) right++;
+      var v = d.children[2];
+      v.style.display = "block";
+      v.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:4px;margin-right:9px;' +
+        (ok ? "color:var(--ok);background:var(--ok-wash);border:1px solid var(--ok-line)" : "color:var(--signal);background:var(--signal-wash);border:1px solid var(--signal-line)") +
+        '">' + (ok ? "agreed" : "consider") + "</span><b>" + esc(Q[i].a) + ".</b> " + esc(Q[i].why);
+    });
+    document.getElementById("score").textContent = right + " of " + Q.length + " matched";
+  });
+})();
+</script>
+</body>
+</html>

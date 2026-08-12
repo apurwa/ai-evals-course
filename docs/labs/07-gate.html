@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 7 Gate Designer</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .ctl { display: grid; grid-template-columns: 190px 1fr 70px; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+  .ctl:first-child { border-top: none; }
+  .ctl > b { font-size: 13.5px; font-weight: 600; }
+  .ctl > b small { display: block; font-weight: 400; color: var(--text-3); font-size: 12px; }
+  .ctl > .val { font-family: var(--mono); font-size: 13px; text-align: right; color: var(--accent); }
+  .rel { display: grid; grid-template-columns: 1fr 88px 88px 92px 106px; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line-soft); font-size: 13.5px; align-items: center; }
+  .rel:first-child { border-top: none; }
+  .rel .st { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; text-align: center; }
+  .rel .st.pass { color: var(--ok); background: var(--ok-wash); border: 1px solid var(--ok-line); }
+  .rel .st.block { color: var(--signal); background: var(--signal-wash); border: 1px solid var(--signal-line); }
+  .rel .num { font-family: var(--mono); font-size: 12.5px; color: var(--text-2); text-align: right; }
+  .rel.falarm { background: var(--signal-wash); }
+  .rel-head { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); background: var(--surface-2); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/07-ci-gates.html">L7</a> &rsaquo; Lab 7</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 7</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~25 min</span></div>
+    <h1>Gate designer</h1>
+    <p class="lede">
+      Set thresholds, run eight candidate releases through them, and count how often you block
+      something that was fine.
+    </p>
+  </header>
+
+  <div class="note" style="margin-top:24px">
+    <h4>How the releases are made</h4>
+    <p style="font-size:14.5px">
+      Each release is a deterministic resample of the real 120-trace corpus, mixed to hit a
+      target success rate. Five are healthy, at 89 to 93 percent. Three carry a genuine
+      regression and fail disproportionately in one specific way, which is what a real
+      regression looks like. Because the sample is random, a healthy release can still look bad
+      and a regressed one can still slip through: that is not a flaw in the lab, it is the entire
+      problem with gating on a small sample, and it is what you are here to feel.
+    </p>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Your gate</h2><span class="tag">drag to change</span></div>
+    <div class="lab-panel">
+      <div class="ctl">
+        <b>Sample size<small>scenarios run per release</small></b>
+        <input type="range" id="n" min="15" max="120" step="5" value="40">
+        <span class="val" id="nv"></span>
+      </div>
+      <div class="ctl">
+        <b>Critical failures allowed<small>under-refund, unflagged recall, missed escalation</small></b>
+        <input type="range" id="crit" min="0" max="8" step="1" value="1">
+        <span class="val" id="critv"></span>
+      </div>
+      <div class="ctl">
+        <b>Minimum success rate<small>across all severities</small></b>
+        <input type="range" id="rate" min="40" max="98" step="1" value="85">
+        <span class="val" id="ratev"></span>
+      </div>
+      <div class="ctl">
+        <b>High-severity allowed<small>as a share of the sample</small></b>
+        <input type="range" id="high" min="0" max="25" step="1" value="6">
+        <span class="val" id="highv"></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Release outcomes</h2><span class="tag">eight candidates</span></div>
+    <div class="table-scroll">
+      <div id="rels"></div>
+    </div>
+    <div class="lab-panel" style="margin-top:16px"><div class="stat-row" id="summary"></div></div>
+    <div id="advice" style="margin-top:14px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Why your gate is noisy</h2><span class="tag">the arithmetic</span></div>
+    <p id="noise" style="max-width:70ch;color:var(--text-2)"></p>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/07-ci-gates.html">&larr; L7</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-corpus.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.LAB_CORPUS;
+  if (!C) { document.getElementById("rels").textContent = "corpus did not load; run make check"; return; }
+  var T = C.traces, TAX = C.taxonomy;
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+
+  // Deterministic PRNG so the page shows the same releases on every reload and
+  // two people can discuss the same numbers.
+  function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+  // `quality` is the release's true single-run success rate. Releases are built
+  // by resampling the corpus to hit that rate, rather than by drawing from the
+  // corpus as it stands.
+  //
+  // That extra step is necessary. The corpus is deliberately 62 percent broken
+  // so that L4 has enough failures to code, which is nothing like a system
+  // being considered for release. Drawing from it directly made every candidate
+  // fail every sane threshold, and a lab where the answer is always "block" does
+  // not teach anyone how to choose a threshold.
+  var RELEASES = [
+    { name: "v1.4.0  baseline",        seed: 101, quality: 0.91, boost: null },
+    { name: "v1.4.1  prompt tidy-up",  seed: 202, quality: 0.90, boost: null },
+    { name: "v1.5.0  new policy tool", seed: 303, quality: 0.93, boost: null },
+    { name: "v1.5.1  cheaper model",   seed: 404, quality: 0.79, boost: "under_refund" },
+    { name: "v1.5.2  hotfix",          seed: 505, quality: 0.89, boost: null },
+    { name: "v1.6.0  step budget cut", seed: 606, quality: 0.82, boost: "missed_escalation" },
+    { name: "v1.6.1  copy changes",    seed: 707, quality: 0.92, boost: null },
+    { name: "v1.7.0  refactor",        seed: 808, quality: 0.86, boost: "recall_not_flagged" }
+  ];
+
+  var CLEAN = T.filter(function (t) { return t.label.correct; });
+  var BROKEN = T.filter(function (t) { return !t.label.correct; });
+
+  function draw(rel, n) {
+    var rnd = mulberry(rel.seed);
+    var boosted = rel.boost
+      ? BROKEN.filter(function (x) { return x.label.failure_mode === rel.boost; })
+      : [];
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      if (rnd() < rel.quality) {
+        out.push(CLEAN[Math.floor(rnd() * CLEAN.length)]);
+      } else if (boosted.length && rnd() < 0.6) {
+        // A regressed release fails disproportionately in one specific way,
+        // which is what a real regression looks like and what makes it
+        // catchable by a per-severity threshold rather than an overall rate.
+        out.push(boosted[Math.floor(rnd() * boosted.length)]);
+      } else {
+        out.push(BROKEN[Math.floor(rnd() * BROKEN.length)]);
+      }
+    }
+    return out;
+  }
+
+  function sev(t) { return t.label.failure_mode ? (TAX[t.label.failure_mode] || {}).severity : null; }
+
+  function run() {
+    var n = +document.getElementById("n").value;
+    var maxCrit = +document.getElementById("crit").value;
+    var minRate = +document.getElementById("rate").value / 100;
+    var maxHigh = +document.getElementById("high").value / 100;
+
+    document.getElementById("nv").textContent = n;
+    document.getElementById("critv").textContent = maxCrit;
+    document.getElementById("ratev").textContent = (minRate * 100).toFixed(0) + "%";
+    document.getElementById("highv").textContent = (maxHigh * 100).toFixed(0) + "%";
+
+    var html = '<div class="rel rel-head"><span>release</span><span class="num">success</span>' +
+               '<span class="num">critical</span><span class="num">high</span><span>gate</span></div>';
+    var blocked = 0, falseAlarms = 0, missed = 0;
+
+    RELEASES.forEach(function (rel) {
+      var s = draw(rel, n);
+      var ok = s.filter(function (t) { return t.label.correct; }).length;
+      var rate = ok / n;
+      var crit = s.filter(function (t) { return sev(t) === "critical"; }).length;
+      var high = s.filter(function (t) { return sev(t) === "high"; }).length;
+
+      var fails = [];
+      if (crit > maxCrit) fails.push("critical");
+      if (rate < minRate) fails.push("rate");
+      if (high / n > maxHigh) fails.push("high");
+      var isBlocked = fails.length > 0;
+
+      var reallyBad = !!rel.boost;
+      var falseAlarm = isBlocked && !reallyBad;
+      var slipped = !isBlocked && reallyBad;
+      if (isBlocked) blocked++;
+      if (falseAlarm) falseAlarms++;
+      if (slipped) missed++;
+
+      html += '<div class="rel' + (falseAlarm ? " falarm" : "") + '">' +
+        "<span>" + esc(rel.name) + (reallyBad ? '<br><span style="font-size:11.5px;color:var(--signal)">really regressed: ' + esc(rel.boost) + "</span>" : "") + "</span>" +
+        '<span class="num">' + (rate * 100).toFixed(0) + "%</span>" +
+        '<span class="num">' + crit + "</span>" +
+        '<span class="num">' + high + "</span>" +
+        '<span class="st ' + (isBlocked ? "block" : "pass") + '">' + (isBlocked ? fails.join(" ") : "pass") + "</span></div>";
+    });
+    document.getElementById("rels").innerHTML = html;
+
+    document.getElementById("summary").innerHTML =
+      stat(blocked, "blocked") +
+      stat(falseAlarms, "false alarms", falseAlarms ? "bad" : "good") +
+      stat(missed, "regressions missed", missed ? "bad" : "good") +
+      stat(RELEASES.length - blocked, "shipped");
+
+    var adv = "";
+    if (falseAlarms >= 3) {
+      adv = '<div class="note warn"><h4>This gate will be ignored within a month</h4><p style="font-size:14.5px">' +
+        falseAlarms + " of the five healthy releases were blocked. People will re-run it, then " +
+        "merge past it, and then it is decoration. Either raise the thresholds or raise the sample size.</p></div>";
+    } else if (missed >= 2) {
+      adv = '<div class="note warn"><h4>Too permissive</h4><p style="font-size:14.5px">' +
+        missed + " genuinely regressed releases shipped. Critical failures are the ones to tighten " +
+        "first, because they are the cheapest to gate at zero and the most expensive to miss.</p></div>";
+    } else if (falseAlarms === 0 && missed === 0) {
+      adv = '<div class="note"><h4>This one works, on this data</h4><p style="font-size:14.5px">' +
+        "Every regression caught, no healthy release blocked. Before believing it, drag the sample " +
+        "size down and watch how quickly that stops being true. The threshold is only half the design; " +
+        "the sample size is the other half and it is the half people forget.</p></div>";
+    } else {
+      adv = '<div class="note"><h4>Close</h4><p style="font-size:14.5px">' + falseAlarms +
+        " false alarm(s), " + missed + " missed. Try gating critical at zero and loosening the " +
+        "overall rate, rather than tightening everything at once.</p></div>";
+    }
+    document.getElementById("advice").innerHTML = adv;
+
+    // Binomial noise band on the observed rate
+    var p = 0.6;
+    var se = Math.sqrt(p * (1 - p) / n);
+    document.getElementById("noise").innerHTML =
+      "At a sample of <b>" + n + "</b>, a success rate near 60 percent carries a standard error of " +
+      "about <b>" + (se * 100).toFixed(1) + " points</b>, so a 95 percent interval spans roughly <b>" +
+      (1.96 * se * 200).toFixed(0) + " points</b> end to end. Any threshold sitting inside that band " +
+      "is deciding releases by coin flip. If you want to gate within a few points, you need a sample " +
+      "in the hundreds, and if you cannot afford one, gate on things that are countable at zero " +
+      "instead: no critical failures is a threshold that does not care about your sample size.";
+  }
+
+  ["n", "crit", "rate", "high"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", run);
+  });
+  run();
+})();
+</script>
+</body>
+</html>

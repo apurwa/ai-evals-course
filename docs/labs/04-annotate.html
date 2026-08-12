@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 4 Annotation Tool</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .ann { display: grid; grid-template-columns: 1fr 330px; gap: 18px; align-items: start; }
+  .sp { font-family: var(--mono); font-size: 12px; }
+  .sp-row { display: grid; grid-template-columns: 104px 1fr 66px; gap: 10px; padding: 6px 12px; border-top: 1px solid var(--line-soft); }
+  .sp-row:first-child { border-top: none; }
+  .sp-row.denied { background: var(--signal-wash); }
+  .sp-row .k { color: var(--text-3); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+  .sp-row .st { font-size: 10px; text-align: right; color: var(--text-3); }
+  .sp-row .st.denied { color: var(--signal); }
+  .code-chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11.5px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; margin: 0 5px 5px 0; }
+  .code-chip b { color: var(--accent); }
+  .code-chip button { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+  @media (max-width: 860px) { .ann { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/04-error-analysis.html">L4</a> &rsaquo; Lab 4</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 4</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>60 min or more</span></div>
+    <h1>Annotation tool</h1>
+    <p class="lede">
+      Read traces, name what went wrong in your own words, and watch your saturation curve
+      decide when you are done. Labels stay hidden until you ask for them.
+    </p>
+  </header>
+
+  <div class="note warn" style="margin-top:24px">
+    <h4>Resist the urge to reveal early</h4>
+    <p style="font-size:14.5px">
+      There is a button at the bottom that shows the corpus's own failure labels. Pressing it
+      before you have coded thirty or forty traces will replace your categories with its
+      categories, and you will learn nothing except how to agree. Your work is saved locally,
+      so leaving and coming back is fine.
+    </p>
+  </div>
+
+  <section>
+    <div class="lab-panel">
+      <div class="stat-row" id="progress"></div>
+    </div>
+  </section>
+
+  <div class="ann">
+    <div>
+      <div class="sec-head" style="margin-bottom:12px">
+        <h2 id="tid" style="font-size:1.15rem">&nbsp;</h2>
+        <span class="tag" id="tkind"></span>
+      </div>
+
+      <h3 style="font-size:.95rem;margin-bottom:7px">Customer</h3>
+      <div class="msg" id="msg" style="font-family:var(--serif);font-size:1.02rem;background:var(--surface-2);border-left:3px solid var(--line);border-radius:0 8px 8px 0;padding:12px 15px"></div>
+
+      <h3 style="font-size:.95rem;margin:18px 0 7px">What the agent did</h3>
+      <div class="table-scroll"><div class="sp" id="spans"></div></div>
+
+      <h3 style="font-size:.95rem;margin:18px 0 7px">What the agent said</h3>
+      <div class="msg" id="final" style="font-family:var(--serif);font-size:1.02rem;background:var(--surface-2);border-left:3px solid var(--accent-line);border-radius:0 8px 8px 0;padding:12px 15px"></div>
+
+      <details style="margin-top:16px">
+        <summary style="cursor:pointer;font-size:13.5px;color:var(--accent)">Show what rules.py says the correct answer is</summary>
+        <pre style="margin-top:10px" id="truth"></pre>
+      </details>
+
+      <div class="lab-panel" style="margin-top:20px">
+        <p style="font-size:14px;font-weight:600;margin-bottom:9px">Your code for this trace</p>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:10px">
+          A short phrase in your own words. Specific enough that somebody could write a test for
+          it. Leave blank and mark it correct if nothing went wrong.
+        </p>
+        <input type="text" id="codeIn" placeholder="e.g. refunded without checking eligibility" autocomplete="off">
+        <div class="pill-row" id="reuse" style="margin-top:10px"></div>
+        <div class="actions">
+          <button class="btn" id="save">Save and next</button>
+          <button class="btn ghost" id="ok">Nothing wrong &rarr;</button>
+          <button class="btn ghost" id="skip">Skip</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="lab-panel">
+        <p style="font-size:12px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Saturation curve</p>
+        <svg class="chart" id="curve" viewBox="0 0 300 170" preserveAspectRatio="xMidYMid meet"></svg>
+        <p style="font-size:12.5px;color:var(--text-2);margin-top:8px" id="satNote">
+          Code a few traces and the curve appears.
+        </p>
+      </div>
+
+      <div class="lab-panel">
+        <p style="font-size:12px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Your codes</p>
+        <div id="codes"></div>
+      </div>
+
+      <div class="lab-panel">
+        <p style="font-size:12px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Navigate</p>
+        <div class="pill-row" id="nav"></div>
+        <p style="margin-top:12px"><button class="btn ghost" id="reset" style="font-size:12.5px">Clear all my work</button></p>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Axial pass</h2><span class="tag">after the curve flattens</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Group your codes into categories. Type a category name next to each code. Codes sharing a
+      category name become one taxonomy entry.
+    </p>
+    <div id="axial" style="margin-top:14px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Compare</h2><span class="tag">only after you have coded</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Reveals the failure modes planted in this corpus, with counts, so you can see what you
+      caught and what slipped past. Remember that a real corpus has no answer key.
+    </p>
+    <p style="margin-top:14px"><button class="btn" id="reveal">Reveal the planted taxonomy</button></p>
+    <div id="revealOut" style="margin-top:18px"></div>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/04-error-analysis.html">&larr; L4</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-corpus.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.LAB_CORPUS;
+  if (!C) { document.getElementById("msg").textContent = "corpus did not load; run make check"; return; }
+  var T = C.traces;
+  var KEY = "wayfarer-l4-annotations";
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+
+  var state = load();
+  var idx = firstUnannotated();
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || { ann: {}, order: [], axial: {} }; }
+    catch (e) { return { ann: {}, order: [], axial: {} }; }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function firstUnannotated() {
+    for (var i = 0; i < T.length; i++) if (!state.ann[T[i].scenario.id]) return i;
+    return 0;
+  }
+
+  function distinctCodes() {
+    var s = {};
+    Object.keys(state.ann).forEach(function (k) {
+      var c = state.ann[k].code;
+      if (c && c !== "__ok__") s[c] = (s[c] || 0) + 1;
+    });
+    return s;
+  }
+
+  // ---- saturation curve, built from the ORDER traces were coded in
+  function drawCurve() {
+    var seen = {}, pts = [], n = 0;
+    state.order.forEach(function (id) {
+      var a = state.ann[id];
+      if (!a) return;
+      n++;
+      if (a.code && a.code !== "__ok__" && !seen[a.code]) seen[a.code] = true;
+      pts.push([n, Object.keys(seen).length]);
+    });
+
+    var svg = document.getElementById("curve");
+    if (pts.length < 2) { svg.innerHTML = ""; return; }
+
+    var W = 300, H = 170, P = 26;
+    var maxX = Math.max(10, pts[pts.length - 1][0]);
+    var maxY = Math.max(4, pts[pts.length - 1][1]);
+    function X(v) { return P + (W - P - 8) * v / maxX; }
+    function Y(v) { return H - P - (H - P - 10) * v / maxY; }
+
+    var d = pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
+    var html = '<line class="axis" x1="' + P + '" y1="' + (H - P) + '" x2="' + (W - 6) + '" y2="' + (H - P) + '"/>' +
+               '<line class="axis" x1="' + P + '" y1="8" x2="' + P + '" y2="' + (H - P) + '"/>' +
+               '<path class="ln" d="' + d + '"/>';
+    pts.forEach(function (p) { html += '<circle class="dot" cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="2"/>'; });
+    html += '<text class="lbl" x="' + P + '" y="' + (H - 10) + '">0</text>' +
+            '<text class="lbl" x="' + (W - 20) + '" y="' + (H - 10) + '">' + maxX + '</text>' +
+            '<text class="lbl" x="4" y="14">' + maxY + '</text>' +
+            '<text class="lbl" x="4" y="' + (H - P) + '">0</text>';
+    svg.innerHTML = html;
+
+    // Flatness read: how many new categories in the most recent third?
+    var tail = pts.slice(Math.max(0, pts.length - Math.max(8, Math.floor(pts.length / 3))));
+    var gained = tail[tail.length - 1][1] - tail[0][1];
+    var note = document.getElementById("satNote");
+    if (pts.length < 15) {
+      note.innerHTML = "Too early to read. Keep going.";
+    } else if (gained === 0) {
+      note.innerHTML = '<b style="color:var(--ok)">Flat across your last ' + tail.length +
+        " traces.</b> No new categories. This is what saturation looks like, and it is the " +
+        "signal to stop rather than a target you hit.";
+    } else {
+      note.innerHTML = "Still climbing: <b>" + gained + "</b> new categor" + (gained === 1 ? "y" : "ies") +
+        " in your last " + tail.length + " traces. Not saturated yet.";
+    }
+  }
+
+  function renderProgress() {
+    var done = Object.keys(state.ann).length;
+    var codes = distinctCodes();
+    var ok = Object.keys(state.ann).filter(function (k) { return state.ann[k].code === "__ok__"; }).length;
+    document.getElementById("progress").innerHTML =
+      stat(done + " / " + T.length, "traces coded") +
+      stat(Object.keys(codes).length, "distinct codes") +
+      stat(ok, "marked correct") +
+      stat(done - ok, "with a failure");
+  }
+
+  function renderCodes() {
+    var codes = distinctCodes();
+    var keys = Object.keys(codes).sort(function (a, b) { return codes[b] - codes[a]; });
+    document.getElementById("codes").innerHTML = keys.length
+      ? keys.map(function (c) { return '<span class="code-chip"><b>' + codes[c] + "</b> " + esc(c) + "</span>"; }).join("")
+      : '<span style="font-size:13px;color:var(--text-3)">none yet</span>';
+
+    var reuse = document.getElementById("reuse");
+    reuse.innerHTML = "";
+    keys.slice(0, 8).forEach(function (c) {
+      var b = document.createElement("button");
+      b.className = "pill"; b.textContent = c;
+      b.addEventListener("click", function () { document.getElementById("codeIn").value = c; });
+      reuse.appendChild(b);
+    });
+  }
+
+  function renderAxial() {
+    var codes = Object.keys(distinctCodes()).sort();
+    var el = document.getElementById("axial");
+    if (!codes.length) { el.innerHTML = '<p style="color:var(--text-3);font-size:14px">Code some traces first.</p>'; return; }
+    el.innerHTML = "";
+    codes.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "lab-panel";
+      row.style.display = "grid"; row.style.gridTemplateColumns = "1fr 1fr";
+      row.style.gap = "12px"; row.style.alignItems = "center"; row.style.padding = "12px 16px";
+      row.innerHTML = '<span style="font-family:var(--mono);font-size:12.5px">' + esc(c) + "</span>";
+      var inp = document.createElement("input");
+      inp.type = "text"; inp.placeholder = "category name"; inp.value = state.axial[c] || "";
+      inp.addEventListener("input", function () { state.axial[c] = inp.value; save(); });
+      row.appendChild(inp);
+      el.appendChild(row);
+    });
+    var groups = {};
+    codes.forEach(function (c) { var g = (state.axial[c] || "").trim(); if (g) (groups[g] = groups[g] || []).push(c); });
+    if (Object.keys(groups).length) {
+      var d = document.createElement("div");
+      d.className = "note"; d.style.marginTop = "16px";
+      d.innerHTML = "<h4>Your taxonomy</h4>" + Object.keys(groups).sort().map(function (g) {
+        return '<p style="font-size:14px;margin:6px 0"><b>' + esc(g) + "</b>: " + groups[g].map(esc).join(", ") + "</p>";
+      }).join("");
+      el.appendChild(d);
+    }
+  }
+
+  function renderTrace() {
+    var t = T[idx];
+    document.getElementById("tid").textContent = t.scenario.id + "  (" + (idx + 1) + " of " + T.length + ")";
+    document.getElementById("tkind").textContent = t.scenario.kind.replace(/_/g, " ");
+    document.getElementById("msg").textContent = t.scenario.message;
+    document.getElementById("final").textContent = t.final_response || "(no final response: the run ended without answering)";
+
+    var html = "";
+    t.spans.forEach(function (s) {
+      if (s.kind === "session") return;
+      var a = s.attributes || {}, det = "";
+      if (a.args) {
+        det = Object.keys(a.args).filter(function (k) { return k !== "summary"; })
+          .map(function (k) { return k + "=" + a.args[k]; }).join(" ");
+      }
+      if (a.denied_reason) det += (det ? "  " : "") + "-> " + a.denied_reason;
+      html += '<div class="sp-row' + (s.status === "denied" ? " denied" : "") + '">' +
+        '<span class="k">' + esc(s.kind) + "</span>" +
+        "<span>" + esc(s.name) + (det ? '<br><span style="color:var(--text-3);font-size:11px">' + esc(det) + "</span>" : "") + "</span>" +
+        '<span class="st ' + esc(s.status) + '">' + esc(s.status) + "</span></div>";
+    });
+    document.getElementById("spans").innerHTML = html;
+
+    var f = t.expected.facts || {};
+    var lines = ["decision  " + t.expected.decision, "reasons   " + (t.expected.reasons.join(", ") || "none")];
+    Object.keys(f).sort().forEach(function (k) { lines.push(k.padEnd(10) + String(f[k])); });
+    document.getElementById("truth").textContent = lines.join("\n");
+
+    var prev = state.ann[t.scenario.id];
+    document.getElementById("codeIn").value = prev && prev.code !== "__ok__" ? prev.code : "";
+
+    var nav = document.getElementById("nav");
+    nav.innerHTML = "";
+    [["← prev", -1], ["next →", 1]].forEach(function (p) {
+      var b = document.createElement("button");
+      b.className = "pill"; b.textContent = p[0];
+      b.addEventListener("click", function () { idx = (idx + p[1] + T.length) % T.length; renderTrace(); });
+      nav.appendChild(b);
+    });
+    var j = document.createElement("button");
+    j.className = "pill"; j.textContent = "next uncoded";
+    j.addEventListener("click", function () { idx = firstUnannotated(); renderTrace(); });
+    nav.appendChild(j);
+  }
+
+  function record(code) {
+    var id = T[idx].scenario.id;
+    if (!state.ann[id]) state.order.push(id);
+    state.ann[id] = { code: code };
+    save();
+    renderProgress(); renderCodes(); drawCurve(); renderAxial();
+    idx = (idx + 1) % T.length;
+    renderTrace();
+  }
+
+  document.getElementById("save").addEventListener("click", function () {
+    var v = document.getElementById("codeIn").value.trim();
+    if (!v) { document.getElementById("codeIn").focus(); return; }
+    record(v.toLowerCase());
+  });
+  document.getElementById("ok").addEventListener("click", function () { record("__ok__"); });
+  document.getElementById("skip").addEventListener("click", function () { idx = (idx + 1) % T.length; renderTrace(); });
+  document.getElementById("codeIn").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") document.getElementById("save").click();
+  });
+
+  document.getElementById("reset").addEventListener("click", function () {
+    state = { ann: {}, order: [], axial: {} }; save(); idx = 0;
+    renderProgress(); renderCodes(); drawCurve(); renderAxial(); renderTrace();
+    document.getElementById("revealOut").innerHTML = "";
+  });
+
+  document.getElementById("reveal").addEventListener("click", function () {
+    var done = Object.keys(state.ann).length;
+    var out = document.getElementById("revealOut");
+    if (done < 10) {
+      out.innerHTML = '<div class="note warn"><h4>Not yet</h4><p style="font-size:14.5px">' +
+        "You have coded " + done + " trace" + (done === 1 ? "" : "s") + ". Reading the answer now " +
+        "will overwrite your own vocabulary with this one, and the whole value of open coding is " +
+        "in the categories you would not have been given. Code at least 10, ideally 40.</p></div>";
+      return;
+    }
+    var counts = {};
+    T.forEach(function (t) { var m = t.label.failure_mode; if (m) counts[m] = (counts[m] || 0) + 1; });
+    var rows = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).map(function (m) {
+      var tax = C.taxonomy[m] || {};
+      return "<tr><td><code>" + esc(m) + "</code></td><td>" + counts[m] + "</td><td>" +
+        esc(tax.severity || "") + "</td><td>" + esc(tax.blurb || "") + "</td></tr>";
+    }).join("");
+    var mine = Object.keys(distinctCodes()).length;
+    out.innerHTML =
+      '<div class="table-scroll"><table><tr><th>Planted failure</th><th>Count</th><th>Severity</th><th>What it is</th></tr>' + rows + "</table></div>" +
+      '<div class="note" style="margin-top:16px"><h4>Reading this honestly</h4>' +
+      '<p style="font-size:14.5px">You found <b>' + mine + "</b> distinct code" + (mine === 1 ? "" : "s") +
+      " across " + done + " traces. There are <b>" + Object.keys(counts).length + "</b> planted modes." +
+      " Matching them exactly is not the goal and is slightly suspicious if it happens: your names " +
+      "should be in your language, and you may well have split or merged categories more usefully " +
+      "than this corpus does.</p>" +
+      '<p style="font-size:14.5px;margin-top:10px">The number worth attention is what you found ' +
+      "that is <i>not</i> on this list. In a real corpus that column is the whole point, because " +
+      "there is no list.</p></div>";
+  });
+
+  renderProgress(); renderCodes(); drawCurve(); renderAxial(); renderTrace();
+})();
+</script>
+</body>
+</html>

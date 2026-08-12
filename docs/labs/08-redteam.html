@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 8 Attack Console</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .atk { display: grid; grid-template-columns: 1fr 108px; gap: 12px; padding: 13px 15px; border-top: 1px solid var(--line-soft); cursor: pointer; align-items: center; }
+  .atk:first-child { border-top: none; }
+  .atk:hover { background: var(--surface-2); }
+  .atk[aria-selected="true"] { background: var(--accent-wash); }
+  .atk .g { font-size: 13.5px; }
+  .atk .f { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+  .atk .v { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; text-align: center; }
+  .atk .v.blocked { color: var(--ok); background: var(--ok-wash); border: 1px solid var(--ok-line); }
+  .atk .v.allowed { color: var(--signal); background: var(--signal-wash); border: 1px solid var(--signal-line); }
+  .inj { font-family: var(--mono); font-size: 12.5px; background: var(--code-bg); border-left: 3px solid var(--signal-line); border-radius: 0 7px 7px 0; padding: 13px 15px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/08-safety.html">L8</a> &rsaquo; Lab 8</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 8</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~30 min</span></div>
+    <h1>Attack console</h1>
+    <p class="lede">
+      Every attack here assumes the injection already worked and the model is fully cooperating
+      with the attacker. The question is never whether it was noticed. Only whether it worked.
+    </p>
+  </header>
+
+  <div class="note" style="margin-top:24px">
+    <h4>These verdicts are real</h4>
+    <p style="font-size:14.5px">
+      Each row was produced by calling <code>agent/permissions.py</code> with the exact arguments
+      shown and recording what it returned. Nothing here is a mock. Regenerate them yourself with
+      <code>python scripts/build_redteam.py</code>, which also fails the build if an attack that
+      used to be blocked starts succeeding.
+    </p>
+  </div>
+
+  <section>
+    <div class="lab-panel"><div class="stat-row" id="agg"></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Pick an attack</h2><span class="tag" id="fam"></span></div>
+    <div class="grid-2" style="align-items:start">
+      <div class="table-scroll" style="max-height:520px;overflow-y:auto"><div id="list"></div></div>
+      <div>
+        <h3 style="font-size:.95rem;margin:0 0 8px">Injected into the conversation</h3>
+        <div class="inj" id="inj"></div>
+
+        <h3 style="font-size:.95rem;margin:18px 0 8px">What the compromised model then called</h3>
+        <pre id="call"></pre>
+
+        <h3 style="font-size:.95rem;margin:18px 0 8px">What the permission layer did</h3>
+        <div class="lab-panel" id="verdict"></div>
+
+        <div id="why" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="finale" style="display:none">
+    <div class="sec-head"><h2>The one that gets through</h2><span class="tag">read this last</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Fourteen attacks were refused. One was permitted, and it is the one that does not try to
+      exceed anyone's authority: it shortchanges the customer by $150 while staying comfortably
+      inside every limit the gate enforces.
+    </p>
+    <p style="max-width:70ch;color:var(--text-2)">
+      That is not an oversight in the implementation. Every rule in this gate is about the
+      company's exposure, and an under-refund creates none. The gate is doing exactly what it
+      was built to do. It was simply never built to protect the customer.
+    </p>
+    <p style="max-width:70ch;color:var(--text-2)">
+      This is worth sitting with, because it is the shape of most real authorization layers.
+      They encode the risks somebody priced. Whether the other party needs protection too is a
+      product question, and it will not be raised by a security review that only asks whether
+      attacks were blocked. The check that catches this one is not a permission rule at all: it
+      is an eval, comparing what was paid against what <code>rules.py</code> says was owed.
+    </p>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/08-safety.html">&larr; L8</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/redteam.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var R = window.REDTEAM && window.REDTEAM.attacks;
+  if (!R) { document.getElementById("list").textContent = "data did not load; run make check"; return; }
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+
+  var blocked = R.filter(function (a) { return !a.allowed; }).length;
+  document.getElementById("agg").innerHTML =
+    stat(R.length, "attacks fired") +
+    stat(blocked, "refused in code", "good") +
+    stat(R.length - blocked, "permitted", "bad") +
+    stat("0", "detectors used");
+
+  var seen = {}, cur = R[0];
+  var el = document.getElementById("list");
+
+  function render() {
+    el.innerHTML = "";
+    R.forEach(function (a) {
+      var d = document.createElement("div");
+      d.className = "atk";
+      d.setAttribute("aria-selected", String(a.id === cur.id));
+      d.innerHTML = '<span><span class="g">' + esc(a.goal) + '</span><br><span class="f">' +
+        esc(a.family) + " &middot; as " + esc(a.role) + "</span></span>" +
+        '<span class="v ' + (a.allowed ? "allowed" : "blocked") + '">' +
+        (a.allowed ? "allowed" : "refused") + "</span>";
+      d.addEventListener("click", function () { cur = a; seen[a.id] = true; render(); });
+      el.appendChild(d);
+    });
+
+    document.getElementById("fam").textContent = cur.family;
+    document.getElementById("inj").textContent = cur.injection;
+    document.getElementById("call").textContent =
+      cur.tool + "(" + JSON.stringify(cur.args, null, 2).replace(/\n/g, "\n  ") + ")\n  as role: " + cur.role;
+
+    document.getElementById("verdict").innerHTML =
+      '<div class="stat-row">' +
+      stat(cur.allowed ? "ALLOWED" : "REFUSED", "verdict", cur.allowed ? "bad" : "good") +
+      stat(cur.tier, "risk tier") +
+      stat(cur.requires_approval ? "yes" : "no", "needs a human") +
+      "</div>" +
+      '<p style="font-family:var(--mono);font-size:12.5px;color:var(--text-2);margin-top:14px">reason: ' +
+      esc(cur.reason) + "</p>";
+
+    document.getElementById("why").innerHTML = cur.allowed
+      ? '<div class="note warn"><h4>This one worked</h4><p style="font-size:14.5px">' + esc(cur.note) +
+        " The gate is not malfunctioning. Read the section at the bottom of this page.</p></div>"
+      : '<div class="note"><h4>Why it failed</h4><p style="font-size:14.5px">' + esc(cur.note) +
+        " The refusal happened before the tool body ran, using role, tier and database state. " +
+        "No part of the decision consulted anything the model produced, which is why no amount of " +
+        "rewording the injection changes the outcome.</p></div>";
+
+    if (Object.keys(seen).length >= 5) document.getElementById("finale").style.display = "";
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

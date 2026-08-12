@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L7 CI, Gates and Human Approval</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 3 &rsaquo; L7</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 7</span><span class="dot">/</span><span>Module 3</span><span class="dot">/</span><span>~50 min</span></div>
+    <h1>CI, Gates and Human Approval</h1>
+    <p class="lede">
+      Turn a suite into a release gate people trust, and put a human in front of the actions
+      that cannot be undone.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can set gate thresholds that catch real regressions without crying wolf, and you can
+      design an approval flow for irreversible actions that does not depend on the model
+      cooperating.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      The gate nobody believes. A threshold set slightly too tight on a sample slightly too
+      small fails a few good releases in its first fortnight. People learn to re-run it, then to
+      merge past it. Six months later it is still red and everyone knows it does not mean
+      anything. A gate that is routinely overridden is worse than no gate, because it costs the
+      same and provides false assurance.
+    </p>
+    <p>
+      The other half of this lesson is the opposite failure: asking the model to check with a
+      human. A model that has been talked into issuing a $5,000 refund can also be talked into
+      believing it already got approval. Approval has to be enforced by the same code that
+      enforces the limit.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Gate versus dashboard</dt>
+      <dd>A dashboard reports. A gate blocks. Everything about a gate, including the threshold
+        and the sample size, must be chosen with the knowledge that it will stop a release on a
+        Friday afternoon.</dd>
+
+      <dt>Sampling noise</dt>
+      <dd>A 90 percent success rate measured over 40 scenarios has a confidence interval roughly
+        11 points wide. A gate at 88 percent on that sample will fail good builds regularly, and
+        it will look like a quality problem rather than a statistics problem.</dd>
+
+      <dt>Tiered thresholds</dt>
+      <dd>Not everything deserves the same bar. A critical failure such as an under-refund or an
+        unflagged recall should gate at zero. A cosmetic failure should not gate at all, and
+        should go on a dashboard instead.</dd>
+
+      <dt>Risk tiers</dt>
+      <dd>Tier 0 reads, tier 1 reversible writes, tier 2 money movement, tier 3 irreversible.
+        Approval requirements attach to the tier, not to the prompt.</dd>
+
+      <dt>Approval in code</dt>
+      <dd>The check runs before the tool body, consults nothing the model controls, and records
+        the decision on the trace whether it passes or fails.</dd>
+
+      <dt>Dead approval paths</dt>
+      <dd>If no role can reach a tier 3 tool, the approval branch is unreachable code that has
+        never run. This repository deliberately lets support call
+        <code>cancel_order_final</code> so the path stays live.</dd>
+    </dl>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>failure class        gate at        why
+-----------------    -----------    --------------------------------
+under-refund         0 occurrences  money, silent, customer harmed
+unflagged recall     0 occurrences  safety, not service
+missing escalation   0 occurrences  policy requires the handoff
+skipped policy call  < 5% of runs   real but recoverable
+clumsy phrasing      dashboard      never block a release on this</code></pre>
+    <p>
+      Every row is a decision somebody has to make and defend. Writing "quality must not
+      regress" instead is how a gate ends up meaning nothing.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 7</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Gate designer</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Set per-severity thresholds and a sample size, then see which of eight candidate releases
+        pass, which are blocked, and, crucially, which are blocked by noise rather than by a real
+        regression. The false alarm counter is the number that decides whether your team will
+        still trust this gate in three months.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/07-gate.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>cat .github/workflows/check.yml     # the gate this repository actually runs
+make check                          # the same thing, locally</code></pre>
+    <p>
+      Note that CI runs exactly what you run. A CI gate that tests something different from
+      what people run locally teaches them to distrust it, which is the failure this lesson is
+      about, arriving through the back door.
+    </p>
+    <p>
+      Then exercise the approval path. In <code>agent/permissions.py</code>, find the tier 3
+      branch and confirm it fires before any tool body. Try to reach it from a scenario. The
+      point is that no wording in the conversation changes the outcome.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check the confidence interval before setting the threshold.</b> A gate inside the
+        noise band of your sample is a random number generator with a red X.</li>
+      <li><b>Check that critical failures gate at zero</b> and cosmetic ones do not gate at all.
+        One threshold for everything is the same as no thresholds.</li>
+      <li><b>Check whether anyone has overridden the gate this month.</b> If yes, fix the gate,
+        not the person.</li>
+      <li><b>Check that the approval path has actually executed.</b> An approval branch no role
+        can reach has never run and may not work.</li>
+      <li><b>Check that approval cannot be granted by the conversation.</b> If a sufficiently
+        persuasive message can satisfy the check, it is not a check.</li>
+      <li><b>Check that the gate runs on the frozen test split</b>, and that nobody has been
+        iterating against it.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Your suite is 40 scenarios and you want to gate at 90 percent. What is wrong?</li>
+      <li>Which failure classes in your taxonomy should gate at exactly zero, and why those?</li>
+      <li>Why does this repository let the support role call an irreversible tool?</li>
+      <li>A teammate proposes the agent should "ask for approval when the amount is large".
+        What is wrong with that sentence?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="06-agents.html">&larr; L6 Evaluating Agents</a>
+    <a href="08-safety.html">L8 Safety and Red-Teaming &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world scenarios check check-coverage check-permissions check-agent seed-traces site clean
+.PHONY: help world scenarios check check-coverage check-permissions check-agent seed-traces check-site site clean
 
 help:
 	@echo "Wayfarer AI Evals Course"
@@ -28,7 +28,7 @@ scenarios:
 	$(PY) scripts/build_scenarios.py
 
 # Every gate that runs without an API key. Wired into CI.
-check: world check-coverage check-permissions scenarios check-agent seed-traces
+check: world check-coverage check-permissions scenarios check-agent seed-traces check-site
 	@echo ""
 	@echo "all gates passed"
 
@@ -41,11 +41,28 @@ seed-traces:
 	@echo ""
 	@echo "=== lab data: do the L1 cases still teach what they claim? ==="
 	@$(PY) scripts/build_seed_traces.py
+	@echo ""
+	@echo "=== lab corpus: is every failure mode still reachable? ==="
+	@$(PY) scripts/build_lab_corpus.py
+	@echo ""
+	@echo "=== red team: are all the attacks still refused? ==="
+	@$(PY) scripts/build_redteam.py
+	@echo ""
+	@echo "=== lab data: coverage grid and cost breakdown ==="
+	@$(PY) scripts/build_lab_data.py
 
 check-agent:
 	@echo ""
 	@echo "=== agent: loop, permission gate, and trace shape ==="
 	@$(PY) agent/support_agent.py --selftest
+
+# Structural only. Confirms the site is wired up: links resolve, tags balance,
+# no fetch (which would break file://), no external loads. Says nothing about
+# whether the lab JavaScript behaves, which needs a browser.
+check-site:
+	@echo ""
+	@echo "=== site: do the links resolve and the tags balance? ==="
+	@$(PY) scripts/check_site.py
 
 check-coverage:
 	@echo ""

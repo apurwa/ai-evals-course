@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 2 Trace Reader</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .wf { font-family: var(--mono); font-size: 12.5px; }
+  .wf-row { display: grid; grid-template-columns: 210px 1fr 88px; gap: 12px; align-items: center; padding: 7px 12px; border-top: 1px solid var(--line-soft); }
+  .wf-row:first-child { border-top: none; }
+  .wf-row.denied { background: var(--signal-wash); }
+  .wf-row .nm { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wf-row .nm.d { color: var(--signal); }
+  .wf-row .amt { text-align: right; color: var(--text-2); }
+  .filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/02-evaluability.html">L2</a> &rsaquo; Lab 2</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 2</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~25 min</span></div>
+    <h1>Trace reader and cost waterfall</h1>
+    <p class="lede">
+      120 traces from the corpus. Read where the money goes, then answer the harder question:
+      what would you need logged that is not here?
+    </p>
+  </header>
+
+  <div class="note" style="margin-top:24px">
+    <h4>About these numbers</h4>
+    <p style="font-size:14.5px">
+      Costs are computed by the real pricing code in <code>agent/tracing.py</code> from token
+      counts that are <b>placeholders</b>, because no model was called. The arithmetic and the
+      shape of the distribution are real; the absolute dollars are not a measurement. Prices in
+      <code>evals/pricing.json</code> are also marked unverified. Latency is not shown at all,
+      because a scripted client returns instantly and publishing that as agent latency would be
+      worse than publishing nothing.
+    </p>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Part 1: where the money goes</h2><span class="tag">across all 120 traces</span></div>
+    <div class="lab-panel">
+      <div class="stat-row" id="agg"></div>
+    </div>
+    <p style="font-size:14.5px;color:var(--text-2)">
+      Note which span kind dominates before you look at any single trace. Optimising the wrong
+      one is the most common way a cost programme wastes a quarter.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 2: one trace at a time</h2><span class="tag">pick a scenario kind</span></div>
+    <div class="filters pill-row" id="filters"></div>
+    <div class="grid-2" style="align-items:start">
+      <div class="tr-list" id="list"></div>
+      <div>
+        <div class="lab-panel" style="margin-bottom:12px">
+          <div class="stat-row" id="one"></div>
+        </div>
+        <div class="table-scroll"><div class="wf" id="wf"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 3: the under-instrumented trace</h2><span class="tag">the actual exercise</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Below is a trace of a run that went wrong, stripped down to what a team logs when they add
+      instrumentation after launch rather than before. The customer was refunded the wrong
+      amount. Work out what you cannot determine from this, then check yourself.
+    </p>
+    <div class="table-scroll" style="margin:16px 0"><div class="wf" id="poor"></div></div>
+
+    <div class="lab-panel">
+      <p style="font-size:14.5px;font-weight:600;margin-bottom:10px">
+        Which of these can you answer from the trace above? Pick every one you think is answerable.
+      </p>
+      <div class="pill-row" id="quiz"></div>
+      <p style="margin-top:16px">
+        <button class="btn" id="grade">Check</button>
+        <span class="score" id="qscore" style="margin-left:10px"></span>
+      </p>
+      <div id="qout" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/02-evaluability.html">&larr; L2</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-corpus.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.LAB_CORPUS;
+  if (!C) { document.getElementById("wf").textContent = "corpus did not load; run make check"; return; }
+  var T = C.traces;
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function usd(n){ return "$" + n.toFixed(4); }
+  function stat(v, l, cls){ return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>'; }
+
+  // ---- Part 1 aggregate
+  var byKind = {}, total = 0, denials = 0;
+  T.forEach(function (t) {
+    total += t.totals.cost_usd;
+    denials += t.totals.permission_denials;
+    t.spans.forEach(function (s) {
+      var c = (s.cost_usd || (s.tokens && s.tokens.cost_usd) || 0);
+      if (!c && s.attributes && s.attributes.cost_usd) c = s.attributes.cost_usd;
+      byKind[s.kind] = (byKind[s.kind] || 0) + c;
+    });
+  });
+  var modelShare = total ? Math.round(100 * (byKind.model_call || 0) / total) : 0;
+  document.getElementById("agg").innerHTML =
+    stat(T.length, "traces") +
+    stat(usd(total), "total cost") +
+    stat(usd(total / T.length), "mean per trace") +
+    stat(modelShare + "%", "in model calls") +
+    stat(denials, "real denials", denials ? "bad" : "");
+
+  // ---- Part 2
+  var kinds = []; T.forEach(function(t){ if(kinds.indexOf(t.scenario.kind)<0) kinds.push(t.scenario.kind); });
+  kinds.sort();
+  var kind = kinds[0], sel = null;
+
+  var elF = document.getElementById("filters");
+  kinds.forEach(function (k) {
+    var b = document.createElement("button");
+    b.className = "pill"; b.textContent = k.replace(/_/g," ");
+    b.addEventListener("click", function () { kind = k; renderList(); });
+    b.dataset.k = k; elF.appendChild(b);
+  });
+
+  function renderList() {
+    Array.prototype.forEach.call(elF.children, function(b){ b.setAttribute("aria-pressed", String(b.dataset.k===kind)); });
+    var rows = T.filter(function (t) { return t.scenario.kind === kind; });
+    var el = document.getElementById("list");
+    el.innerHTML = "";
+    rows.forEach(function (t) {
+      var d = document.createElement("div");
+      d.className = "tr-item";
+      d.innerHTML = '<span class="id">' + esc(t.scenario.id) + "</span> " +
+        (t.totals.permission_denials ? '<span style="color:var(--signal)">' + t.totals.permission_denials + " denied</span> " : "") +
+        "<br>" + esc(t.scenario.message.slice(0, 68)) + (t.scenario.message.length > 68 ? "..." : "");
+      d.addEventListener("click", function () { sel = t; renderOne(); });
+      el.appendChild(d);
+    });
+    sel = rows[0]; renderOne();
+  }
+
+  function spanCost(s) {
+    if (typeof s.cost_usd === "number") return s.cost_usd;
+    if (s.tokens && typeof s.tokens.cost_usd === "number") return s.tokens.cost_usd;
+    if (s.attributes && typeof s.attributes.cost_usd === "number") return s.attributes.cost_usd;
+    return 0;
+  }
+
+  function renderOne() {
+    if (!sel) return;
+    Array.prototype.forEach.call(document.getElementById("list").children, function (d) {
+      d.setAttribute("aria-selected", String(d.textContent.indexOf(sel.scenario.id) === 0));
+    });
+    document.getElementById("one").innerHTML =
+      stat(sel.totals.model_calls, "model calls") +
+      stat(sel.totals.tool_calls, "tool calls") +
+      stat(usd(sel.totals.cost_usd), "cost") +
+      stat(sel.totals.permission_denials, "denials", sel.totals.permission_denials ? "bad" : "good");
+
+    var max = 0;
+    sel.spans.forEach(function (s) { max = Math.max(max, spanCost(s)); });
+    var html = "";
+    sel.spans.forEach(function (s) {
+      if (s.kind === "session") return;
+      var c = spanCost(s);
+      var pct = max ? Math.round(100 * c / max) : 0;
+      var d = s.status === "denied";
+      html += '<div class="wf-row' + (d ? " denied" : "") + '">' +
+        '<span class="nm' + (d ? " d" : "") + '">' + esc(s.name) + "</span>" +
+        '<span class="bar"><i class="' + (d ? "sig" : "") + '" style="width:' + pct + '%"></i></span>' +
+        '<span class="amt">' + (c ? usd(c) : "&ndash;") + "</span></div>";
+    });
+    document.getElementById("wf").innerHTML = html;
+  }
+
+  // ---- Part 3: a deliberately impoverished trace of a real corpus failure
+  var bad = T.filter(function (t) { return t.label.failure_mode === "hallucinated_restocking_fee"; })[0]
+         || T.filter(function (t) { return t.label.failure_mode === "under_refund"; })[0];
+
+  document.getElementById("poor").innerHTML = [
+    ["session", "chat completed", ""],
+    ["log", 'INFO  handling message for order ' + (bad ? bad.scenario.order_id : 411), ""],
+    ["log", "INFO  called 2 tools", ""],
+    ["log", "INFO  refund processed", ""],
+    ["log", "INFO  response sent (200)", ""],
+    ["log", "INFO  duration 4.1s", ""]
+  ].map(function (r) {
+    return '<div class="wf-row"><span class="nm">' + esc(r[0]) + '</span><span style="color:var(--text-2)">' +
+      esc(r[1]) + '</span><span class="amt">&ndash;</span></div>';
+  }).join("");
+
+  var QUESTIONS = [
+    { t: "Which tools were called", ok: false, why: "It says two tools, not which two. You cannot tell whether the authoritative eligibility check was among them, which is the whole question." },
+    { t: "Whether the refund amount was correct", ok: false, why: "No amount is recorded, and nothing links to the computed correct amount. 'Refund processed' is a status, not a verdict." },
+    { t: "That the request succeeded", ok: true, why: "A 200 and a duration are exactly what this kind of logging is good at. Note how little that buys you." },
+    { t: "Which prompt version produced it", ok: false, why: "No hash, no version. If this run is a regression you cannot attribute it to a change." },
+    { t: "Roughly how long it took", ok: true, why: "4.1 seconds is recorded. You cannot break it down by step, so you know it was slow but not where." },
+    { t: "Whether any action was denied", ok: false, why: "Silence. A blocked attack and no attack look identical here, which is the specific reason denials are recorded as spans." },
+    { t: "Which step cost the most", ok: false, why: "No per-step cost. A session total cannot tell you what to cut, so every optimisation becomes a guess." },
+    { t: "Whether it ran out of steps", ok: false, why: "A run that exhausted its budget and one that finished early produce the same line here." }
+  ];
+
+  var picks = {};
+  var elQ = document.getElementById("quiz");
+  QUESTIONS.forEach(function (q, i) {
+    var b = document.createElement("button");
+    b.className = "pill"; b.textContent = q.t; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", function () {
+      picks[i] = !picks[i];
+      b.setAttribute("aria-pressed", String(!!picks[i]));
+    });
+    elQ.appendChild(b);
+  });
+
+  document.getElementById("grade").addEventListener("click", function () {
+    var right = 0;
+    var html = "";
+    QUESTIONS.forEach(function (q, i) {
+      var chose = !!picks[i];
+      var correct = chose === q.ok;
+      if (correct) right++;
+      html += '<div style="padding:9px 0;border-top:1px solid var(--line-soft)">' +
+        '<span class="mark ' + (correct ? "right" : "wrong") + '" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:4px;margin-right:9px;' +
+        (correct ? "color:var(--ok);background:var(--ok-wash);border:1px solid var(--ok-line)" : "color:var(--signal);background:var(--signal-wash);border:1px solid var(--signal-line)") + '">' +
+        (correct ? "correct" : "no") + "</span>" +
+        "<b>" + esc(q.t) + ":</b> " + (q.ok ? "answerable. " : "not answerable. ") + esc(q.why) + "</div>";
+    });
+    document.getElementById("qscore").textContent = right + " of " + QUESTIONS.length;
+    document.getElementById("qout").innerHTML = html +
+      '<div class="note" style="margin-top:16px"><h4>The point</h4><p style="font-size:14.5px">' +
+      "Only two of eight are answerable, and both are the two that any web framework gives you " +
+      "for free. Everything a language model system actually fails at is invisible here. This is " +
+      "not a strawman: it is what logging looks like when nobody decided in advance what " +
+      "questions it had to answer.</p></div>";
+  });
+
+  renderList();
+})();
+</script>
+</body>
+</html>

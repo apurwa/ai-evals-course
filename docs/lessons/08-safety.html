@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L8 Safety and Red-Teaming</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 4 &rsaquo; L8</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 8</span><span class="dot">/</span><span>Module 4</span><span class="dot">/</span><span>~55 min</span></div>
+    <h1>Safety and Red-Teaming</h1>
+    <p class="lede">
+      Prompt injection has no reliable detector, so authorization has to hold in code that the
+      model cannot reach or argue with.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can design an authorization boundary that survives a fully compromised model, and you
+      can tell the difference between a control and a mitigation.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Defending in the prompt. "Never issue a refund above $200 without approval" is a sentence
+      in a document that an attacker also gets to write in. Every prompt-level defence is
+      negotiable, because the attacker's text and your text arrive at the model through the same
+      channel and have the same status.
+    </p>
+    <p>
+      The second failure is subtler and more common in mature teams: building an injection
+      classifier and treating it as the boundary. Classifiers help. They also have a false
+      negative rate, and the boundary needs to hold on the day one gets through, which is the
+      only day it matters.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Prompt injection</dt>
+      <dd>Instructions supplied through data the model reads, which the model cannot reliably
+        distinguish from instructions supplied by you. Not a bug to be patched. A structural
+        property of putting text and commands in the same channel.</dd>
+
+      <dt>Control versus mitigation</dt>
+      <dd>A control holds regardless of what the model does. A mitigation reduces how often the
+        model is asked to do the wrong thing. Both are worth having. Only one belongs on the
+        boundary.</dd>
+
+      <dt>The compromised-model assumption</dt>
+      <dd>Design as though the injection has already worked and the model is now cooperating
+        with the attacker. If your system is still safe under that assumption, it is safe. If
+        the answer depends on the model behaving, you do not have a boundary.</dd>
+
+      <dt>Gate arguments from the database</dt>
+      <dd>The permission layer in this repository never reads the hazmat flag from the model's
+        tool arguments. It reads it from the database. Otherwise a compromised model would
+        simply say the item is not hazmat.</dd>
+
+      <dt>Confused deputy</dt>
+      <dd>The agent has authority the user does not. Any path where user text steers that
+        authority is the vulnerability, and role separation is the answer.</dd>
+
+      <dt>OWASP Top 10 for Agentic Applications</dt>
+      <dd>Worth reading end to end. The categories most relevant here are excessive agency,
+        improper output handling, and privilege escalation through tools.</dd>
+    </dl>
+
+    <div class="note warn">
+      <h4>The gap this lesson does not paper over</h4>
+      <p style="font-size:14.5px">
+        The permission layer in this repository blocks refunds that are too large and permits
+        refunds that are too small, because every rule it enforces is about the company's
+        exposure. That is a real, unfixed asymmetry, and the lab shows it rather than leaving it
+        out. A boundary that protects only one party is doing half a job, and knowing which half
+        is the difference between a security posture and a security feeling.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>attacker text ──► model ──► tool call ──►│ PERMISSION LAYER │──► tool body
+                    ^                     │  reads: role,    │
+                    │                     │  db, tier, limit │
+              can be fully                │  reads NOTHING   │
+              compromised                 │  the model said  │
+                                          └──────────────────┘
+the boundary is the box. everything left of it is negotiable.</code></pre>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 8</span><span class="dot">/</span><span>real verdicts</span></div>
+      <h3 style="margin-bottom:8px">Attack console</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Fifteen attacks, each assuming the injection already worked and the model is fully
+        cooperating. The verdicts are not simulated: every one was produced by running the real
+        <code>agent/permissions.py</code> and recording what it returned. Fourteen are refused.
+        Find the one that is not, and work out why that is the honest answer rather than a bug.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/08-redteam.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>python scripts/build_redteam.py       # fires all 15 at the real gate
+python scripts/check_permissions.py   # 104-case sweep plus assertions</code></pre>
+    <p>
+      Then try to break it. Open <code>agent/toolset.py</code> and find where
+      <code>ToolRegistry.call</code> derives <code>is_hazmat</code>. Change it to read the value
+      from the model's arguments instead of from the database, and re-run
+      <code>build_redteam.py</code>.
+    </p>
+    <p>
+      The hazmat attack should now succeed, and the script should fail the build with a security
+      regression message. That is the difference between reading a gate argument from the world
+      and reading it from the thing you are defending against. Put it back.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check whether any gate argument comes from the model.</b> If one does, that gate is
+        advisory.</li>
+      <li><b>Check that denials are recorded.</b> A trace that logs only successes cannot tell a
+        blocked attack from an absent one, so you will never know you are under attack.</li>
+      <li><b>Check what happens on the day the injection classifier misses.</b> If the answer is
+        "we lose", the classifier was load-bearing and should not have been.</li>
+      <li><b>Check the unknown-tool default.</b> Deny by default, loudly. This repository had a
+        real bug where the safe action defaulted into the highest tier and became unreachable.</li>
+      <li><b>Check who the boundary protects.</b> Ours protects the company. Ask explicitly
+        whether the customer needs one too, and write down the answer either way.</li>
+      <li><b>Check that red-teaming is repeatable.</b> A one-off afternoon of creative attacks is
+        a workshop. A committed attack suite that runs in CI is a control.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Why can a prompt not enforce a refund limit?</li>
+      <li>Your gate reads <code>is_final_sale</code> from the tool arguments. What is the attack?</li>
+      <li>Which of the fifteen attacks succeeds, and why is that not a bug in the gate?</li>
+      <li>What is the difference between a control and a mitigation, and where does an injection
+        classifier belong?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="07-ci-gates.html">&larr; L7 CI and Gates</a>
+    <a href="09-cost.html">L9 Cost and the Improve Loop &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

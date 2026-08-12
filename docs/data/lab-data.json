@@ -1,0 +1,2958 @@
+{
+  "l3": {
+    "axes": {
+      "condition": [
+        "damaged",
+        "new",
+        "none",
+        "opened",
+        "used"
+      ],
+      "order_status": [
+        "cancelled",
+        "delivered",
+        "pending",
+        "shipped"
+      ],
+      "tier": [
+        "gold",
+        "silver",
+        "standard"
+      ]
+    },
+    "combinatorial_space": 480,
+    "dims": [
+      "tier",
+      "condition",
+      "order_status",
+      "final_sale",
+      "hazmat",
+      "recalled",
+      "decision"
+    ],
+    "distinct_in_world": 115,
+    "distinct_sampled": 115,
+    "rows": [
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 7
+        },
+        "sampled_total": 8,
+        "world_count": 203
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 5
+        },
+        "sampled_total": 6,
+        "world_count": 172
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 5
+        },
+        "sampled_total": 6,
+        "world_count": 142
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 4
+        },
+        "sampled_total": 5,
+        "world_count": 117
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 97
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 3
+        },
+        "sampled_total": 4,
+        "world_count": 77
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 76
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 3
+        },
+        "sampled_total": 4,
+        "world_count": 66
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 5
+        },
+        "sampled_total": 6,
+        "world_count": 61
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 55
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 3
+        },
+        "sampled_total": 4,
+        "world_count": 55
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 3
+        },
+        "sampled_total": 4,
+        "world_count": 50
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 46
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 42
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 41
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 39
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 4
+        },
+        "sampled_total": 5,
+        "world_count": 37
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 34
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 34
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 34
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 33
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 28
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 26
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 26
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 24
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 24
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 24
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 22
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 21
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 20
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 20
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 20
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 19
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 18
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 18
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 17
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 4
+        },
+        "sampled_total": 5,
+        "world_count": 17
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 16
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 15
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 15
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 15
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 14
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 3
+        },
+        "sampled_total": 4,
+        "world_count": 13
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 13
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 11
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 11
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 10
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 10
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 9
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 9
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 8
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 8
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 8
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 8
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 8
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 7
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 6
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 6
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 6
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 2
+        },
+        "sampled_total": 3,
+        "world_count": 6
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 5
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1,
+          "prevalence": 1
+        },
+        "sampled_total": 2,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 4
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 3
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 2
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "route_to_warranty",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "new",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": true,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "opened",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "gold"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": false,
+          "order_status": "cancelled",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "shipped",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "shipped",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "used",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": false,
+          "tier": "silver"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "damaged",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "delivered",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "cancelled",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": false,
+          "order_status": "pending",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "escalate",
+          "final_sale": false,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": true,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      },
+      {
+        "profile": {
+          "condition": "none",
+          "decision": "not_eligible",
+          "final_sale": true,
+          "hazmat": true,
+          "order_status": "pending",
+          "recalled": false,
+          "tier": "standard"
+        },
+        "sampled": {
+          "coverage": 1
+        },
+        "sampled_total": 1,
+        "world_count": 1
+      }
+    ]
+  },
+  "l9": {
+    "by_model_step": {
+      "0": 0.06568,
+      "1": 0.0894,
+      "2": 0.071259,
+      "3": 0.042351,
+      "4": 0.009072
+    },
+    "by_scenario_kind": {
+      "address_change": 0.021476,
+      "order_status": 0.01518,
+      "out_of_scope": 0.006048,
+      "refund_request": 0.077267,
+      "return_request": 0.112442,
+      "supervisor_request": 0.008584,
+      "warranty_claim": 0.036794
+    },
+    "by_span_kind": {
+      "handoff": 0,
+      "model_call": 0.277762,
+      "session": 0,
+      "tool_call": 0
+    },
+    "configs": [
+      {
+        "accuracy": 0.79,
+        "cost_per_1k": 4.8,
+        "name": "mid-tier, 8 steps",
+        "note": "the baseline in this repository"
+      },
+      {
+        "accuracy": 0.71,
+        "cost_per_1k": 2.6,
+        "name": "mid-tier, 4 steps",
+        "note": "cheaper, loses multi-step recoveries"
+      },
+      {
+        "accuracy": 0.8,
+        "cost_per_1k": 3.4,
+        "name": "mid-tier + policy cache",
+        "note": "same quality, fewer tokens"
+      },
+      {
+        "accuracy": 0.93,
+        "cost_per_1k": 41.0,
+        "name": "frontier, 8 steps",
+        "note": "best quality, roughly 9x the cost"
+      },
+      {
+        "accuracy": 0.95,
+        "cost_per_1k": 58.0,
+        "name": "frontier, judge-gated retry",
+        "note": "diminishing returns begin here"
+      },
+      {
+        "accuracy": 0.52,
+        "cost_per_1k": 1.1,
+        "name": "small model, 8 steps",
+        "note": "cheap and not usable"
+      },
+      {
+        "accuracy": 0.89,
+        "cost_per_1k": 12.5,
+        "name": "router: small then frontier",
+        "note": "escalate only hard cases"
+      }
+    ],
+    "configs_are_illustrative": true,
+    "tool_frequency": {
+      "check_return_eligibility": 58,
+      "create_return_label": 8,
+      "escalate_to_human": 22,
+      "get_policy": 12,
+      "issue_refund": 25,
+      "lookup_order": 108,
+      "update_shipping_address": 4
+    },
+    "total_cost": 0.277791,
+    "trace_count": 120,
+    "traces": [
+      {
+        "correct": false,
+        "cost": 0.004238,
+        "id": "sup-0089",
+        "kind": "refund_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": false,
+        "cost": 0.004238,
+        "id": "sup-0186",
+        "kind": "refund_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": false,
+        "cost": 0.004238,
+        "id": "sup-0231",
+        "kind": "refund_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": true,
+        "cost": 0.004074,
+        "id": "sup-0205",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": true,
+        "cost": 0.004074,
+        "id": "sup-0413",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": false,
+        "cost": 0.004038,
+        "id": "sup-0328",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": false,
+        "cost": 0.004038,
+        "id": "sup-0484",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": true,
+        "cost": 0.00399,
+        "id": "sup-0206",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": true,
+        "cost": 0.00399,
+        "id": "sup-0229",
+        "kind": "return_request",
+        "model_calls": 5,
+        "tool_calls": 4
+      },
+      {
+        "correct": true,
+        "cost": 0.003223,
+        "id": "sup-0218",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003223,
+        "id": "sup-0264",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003223,
+        "id": "sup-0309",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003223,
+        "id": "sup-0384",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003223,
+        "id": "sup-0397",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0037",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0123",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0164",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0222",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0253",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003178,
+        "id": "sup-0487",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0067",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0081",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0098",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0169",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0327",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0359",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0416",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0486",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0499",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003145,
+        "id": "sup-0500",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003142,
+        "id": "sup-0045",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003142,
+        "id": "sup-0136",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003142,
+        "id": "sup-0439",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003142,
+        "id": "sup-0455",
+        "kind": "refund_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0093",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0239",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0247",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0262",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0399",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": false,
+        "cost": 0.003105,
+        "id": "sup-0470",
+        "kind": "return_request",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003043,
+        "id": "sup-0200",
+        "kind": "warranty_claim",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.003043,
+        "id": "sup-0452",
+        "kind": "warranty_claim",
+        "model_calls": 4,
+        "tool_calls": 3
+      },
+      {
+        "correct": true,
+        "cost": 0.002333,
+        "id": "sup-0052",
+        "kind": "address_change",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.002333,
+        "id": "sup-0070",
+        "kind": "address_change",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.002333,
+        "id": "sup-0314",
+        "kind": "address_change",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.002333,
+        "id": "sup-0421",
+        "kind": "address_change",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0009",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0031",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0059",
+        "kind": "refund_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0063",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0182",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0244",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0248",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0250",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0258",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0281",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0297",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0317",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0318",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0326",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0335",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0373",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00221,
+        "id": "sup-0419",
+        "kind": "refund_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00221,
+        "id": "sup-0425",
+        "kind": "return_request",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0102",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0156",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.00216,
+        "id": "sup-0185",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0223",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0259",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0301",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0344",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0443",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0453",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": false,
+        "cost": 0.00216,
+        "id": "sup-0489",
+        "kind": "warranty_claim",
+        "model_calls": 3,
+        "tool_calls": 2
+      },
+      {
+        "correct": true,
+        "cost": 0.001642,
+        "id": "sup-0091",
+        "kind": "supervisor_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": true,
+        "cost": 0.001642,
+        "id": "sup-0180",
+        "kind": "supervisor_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": true,
+        "cost": 0.001642,
+        "id": "sup-0277",
+        "kind": "supervisor_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": true,
+        "cost": 0.001642,
+        "id": "sup-0290",
+        "kind": "supervisor_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0002",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0028",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0046",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0051",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0071",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0079",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0113",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0124",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0132",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0140",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0172",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0192",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0202",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0204",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0210",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0226",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0263",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0284",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": true,
+        "cost": 0.001518,
+        "id": "sup-0287",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0320",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0322",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0332",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0365",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0372",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0379",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0387",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0409",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0418",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0430",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0451",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0462",
+        "kind": "address_change",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": true,
+        "cost": 0.001518,
+        "id": "sup-0466",
+        "kind": "order_status",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0467",
+        "kind": "return_request",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001518,
+        "id": "sup-0469",
+        "kind": "warranty_claim",
+        "model_calls": 2,
+        "tool_calls": 1
+      },
+      {
+        "correct": false,
+        "cost": 0.001008,
+        "id": "sup-0043",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": true,
+        "cost": 0.001008,
+        "id": "sup-0157",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": false,
+        "cost": 0.001008,
+        "id": "sup-0183",
+        "kind": "supervisor_request",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": false,
+        "cost": 0.001008,
+        "id": "sup-0220",
+        "kind": "supervisor_request",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": false,
+        "cost": 0.001008,
+        "id": "sup-0338",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": true,
+        "cost": 0.001008,
+        "id": "sup-0376",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": true,
+        "cost": 0.001008,
+        "id": "sup-0380",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      },
+      {
+        "correct": false,
+        "cost": 0.001008,
+        "id": "sup-0392",
+        "kind": "out_of_scope",
+        "model_calls": 1,
+        "tool_calls": 0
+      }
+    ]
+  }
+}

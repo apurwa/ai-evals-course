@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L5 Automated Evaluators</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 2 &rsaquo; L5</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 5</span><span class="dot">/</span><span>Module 2</span><span class="dot">/</span><span>~65 min</span></div>
+    <h1>Automated Evaluators</h1>
+    <p class="lede">
+      Build an evaluator, then prove it agrees with you before you let it tell you anything.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can build a judge for a failure mode you found in L4, measure whether it agrees with
+      human labels, and correct the success rate it reports for the fact that it is imperfect.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Trusting an unvalidated judge. Someone writes a prompt ending in "respond PASS or FAIL",
+      runs it over a thousand traces, and reports 91 percent. Nobody ever checked whether the
+      judge and a human agree. It might be 91 percent. It might be measuring response length.
+    </p>
+    <p>
+      The specific trap is the one the lab opens with. A judge for a rare failure can report
+      97 percent agreement with humans and still catch none of it, because agreeing with "no
+      failure here" 97 percent of the time is exactly what saying nothing achieves. Overall
+      agreement is close to meaningless under class imbalance, and it is the number people
+      quote.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Code check versus judge</dt>
+      <dd>If the property is decidable in code, decide it in code. "Did it call
+        check_return_eligibility" is a set membership test, not a language problem. Reach for a
+        model only for things that genuinely need reading: tone, whether an explanation matches
+        the actual reason, whether a refusal was helpful.</dd>
+
+      <dt>True positive rate (recall, sensitivity)</dt>
+      <dd><code>TPR = TP / (TP + FN)</code>. Of the failures that were really there, what
+        fraction did the judge catch? A judge that never fires has TPR 0.</dd>
+
+      <dt>True negative rate (specificity)</dt>
+      <dd><code>TNR = TN / (TN + FP)</code>. Of the runs that were fine, what fraction did the
+        judge leave alone? A judge that always fires has TNR 0.</dd>
+
+      <dt>Why both, always</dt>
+      <dd>Either one alone is trivially gamed. Report them as a pair, aim for above 0.8 each,
+        and prefer above 0.9 before you let a judge gate a release.</dd>
+
+      <dt>Cohen's kappa</dt>
+      <dd>Agreement corrected for the agreement you would get by chance. Above 0.8 is excellent,
+        0.6 to 0.8 is workable, below 0.6 means your criteria are ambiguous and the fix is to
+        rewrite them rather than to relabel.</dd>
+
+      <dt>Bias correction</dt>
+      <dd>An imperfect judge reports a biased success rate. If you know its TPR and TNR you can
+        correct for that and put a confidence interval on the result. The
+        <code>judgy</code> library does this and it is a two-line change.</dd>
+    </dl>
+
+    <div class="note warn">
+      <h4>Accuracy is the wrong headline number</h4>
+      <p style="font-size:14.5px">
+        Recalled items are about two percent of this corpus. A judge that always says "fine"
+        scores 98 percent accuracy on that failure and catches none of it. Nothing about that
+        number is a lie, and everything about reporting it is misleading. Report TPR and TNR.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>                        actually broken    actually fine
+    judge says broken         TP                FP        <- false alarms
+    judge says fine           FN                TN
+                              ^
+                              misses
+
+    TPR = TP/(TP+FN)   caught / really broken
+    TNR = TN/(TN+FP)   left alone / really fine
+
+    accuracy = (TP+TN)/all   <- hides both when classes are imbalanced</code></pre>
+    <p>
+      Build the judge, fill in this table against human labels, and only then look at what it
+      says about your agent. In that order, every time.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 5</span><span class="dot">/</span><span>the other centerpiece</span></div>
+      <h3 style="margin-bottom:8px">Judge playground</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Opens with the imbalance trap, live, on real corpus counts. Then you build a judge from
+        composable checks and watch the confusion matrix, TPR, TNR and kappa move as you add and
+        remove them. Every check is a real predicate evaluated over real traces, so a judge that
+        looks good here would look the same in CI.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/05-judge.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>pip install -r requirements.txt     # numpy, scikit-learn, judgy. use a venv
+python scripts/build_lab_corpus.py</code></pre>
+    <p>
+      Take the best judge you built in the browser, implement it in
+      <code>evals/</code>, and score it with <code>sklearn.metrics.cohen_kappa_score</code>
+      against the corpus labels. Then feed its TPR and TNR to <code>judgy</code> and compare the
+      corrected success rate with the raw one. The gap between those two numbers is the amount
+      you would have been wrong by.
+    </p>
+    <div class="note">
+      <h4>Using the instructors' skills</h4>
+      <p style="font-size:14.5px">
+        <code>write-judge-prompt</code> and <code>validate-evaluator</code> from
+        <code>hamelsmu/evals-skills</code> cover this workflow directly. Build one by hand first
+        so you know what the skill is doing for you.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that you reported TPR and TNR, not accuracy.</b> If someone asks for one
+        number, give them the pair anyway and explain why in a sentence.</li>
+      <li><b>Check that your judge was validated on data it did not help create.</b> Tuning a
+        judge on the same traces you measure it with tells you nothing.</li>
+      <li><b>Check whether a code check would do.</b> A model asked to count tool calls is a
+        slow, expensive, occasionally wrong <code>in</code> operator.</li>
+      <li><b>Check kappa, not raw agreement.</b> Two annotators who both say "fine" 95 percent of
+        the time agree 90 percent of the time by accident.</li>
+      <li><b>Check that a low kappa sends you back to the criteria.</b> The instinct is to
+        relabel until it goes up. The cause is almost always an ambiguous definition.</li>
+      <li><b>Check that the judge cannot see the answer.</b> A judge shown the expected outcome
+        will score well and mean nothing.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>A judge reports 96 percent agreement on a failure with 3 percent prevalence. What is
+        the most likely value of its TPR?</li>
+      <li>Your kappa is 0.45. What do you change first, and what do you not change?</li>
+      <li>When is a language model the wrong tool for an evaluator?</li>
+      <li>Your judge has TPR 0.85 and TNR 0.92 and reports a 70 percent success rate. Is the
+        true rate higher or lower, and what do you need to say about it?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="04-error-analysis.html">&larr; L4 Error Analysis</a>
+    <a href="06-agents.html">L6 Evaluating Agents &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

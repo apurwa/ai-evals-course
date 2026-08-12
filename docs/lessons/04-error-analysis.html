@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L4 Error Analysis</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 2 &rsaquo; L4</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 4</span><span class="dot">/</span><span>Module 2</span><span class="dot">/</span><span>~70 min</span></div>
+    <h1>Error Analysis</h1>
+    <p class="lede">
+      Read traces until you know what is actually going wrong, in language specific enough that
+      somebody could write a test for it.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can turn a pile of traces into a failure taxonomy with named, countable categories,
+      and you can say when you have read enough.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Jumping straight to metrics. A team that has not read its traces picks the metrics it can
+      imagine, which are almost always fluency, helpfulness, and a vague notion of accuracy.
+      Six weeks later all three look fine and the product is still bad, because the real
+      failure was that the agent never consults the policy tool and nobody was measuring that,
+      because nobody knew.
+    </p>
+    <p>
+      This is the single highest-leverage lesson in the course, and it is the one people skip,
+      because reading a hundred traces by hand feels like something a machine should do. The
+      machine can help you later. It cannot tell you what to look for, because that is exactly
+      the thing you do not yet know.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Open coding</dt>
+      <dd>Read one trace, write a short phrase describing what went wrong, in your own words,
+        without a predefined list. Repeat. The vocabulary emerges from the data instead of
+        being imposed on it.</dd>
+
+      <dt>Axial coding</dt>
+      <dd>Once you have forty phrases, group them. "Didn't check eligibility", "used remembered
+        policy", and "quoted a fee from nowhere" collapse into <i>failed to consult source of
+        truth</i>. The groups are your taxonomy.</dd>
+
+      <dt>Theoretical saturation</dt>
+      <dd>The point where new traces stop producing new categories. In practice: read 50 and
+        you might find 10 categories, the next 25 add 2, the next 25 add none. Stop. Anything
+        further buys sample size, not understanding.</dd>
+
+      <dt>Prevalence versus severity</dt>
+      <dd>The most common failure is rarely the most important one. Count both, and keep them in
+        separate columns. A weekly under-refund matters more than a daily clumsy sentence.</dd>
+
+      <dt>A good failure name</dt>
+      <dd>Specific enough that two people would label the same trace the same way, and that
+        somebody could write a check for it. "Bad answer" fails both tests.
+        "Refunded without calling check_return_eligibility" passes both.</dd>
+    </dl>
+
+    <div class="note warn">
+      <h4>Do not start from a taxonomy, including this repository's</h4>
+      <p style="font-size:14.5px">
+        The lab hides its failure labels until after you have coded. This is deliberate. If you
+        read the categories first you will find exactly those categories and nothing else,
+        which feels productive and teaches you nothing. The value of open coding is entirely in
+        the codes that surprise you.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>distinct
+categories
+found
+    |
+ 12 |            . . . . . . . . . . .   <-- saturation: stop here
+    |        .
+  8 |    .
+    |  .
+  4 | .
+    |.
+  0 +-------------------------------------
+    0    20    40    60    80   100  traces read
+
+the curve flattening is the signal. not a target number,
+not a deadline, not "when the sprint ends".</code></pre>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 4</span><span class="dot">/</span><span>the centerpiece</span></div>
+      <h3 style="margin-bottom:8px">Annotation tool with live saturation curve</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        120 traces with their labels hidden. Read each one, write what went wrong in your own
+        words, and watch your saturation curve build in real time. When it flattens, stop, do
+        the axial pass to group your codes, and only then reveal the planted taxonomy to see
+        what you caught, what you missed, and what you found that it does not contain.
+      </p>
+      <p style="color:var(--text-2);font-size:14.5px;margin-top:10px">
+        Your work is saved in the browser, so you can do this over several sittings. It is meant
+        to take a while. That is the lesson.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/04-annotate.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>python scripts/build_lab_corpus.py     # regenerate, see the planted distribution
+python -c "import json;d=json.load(open('docs/data/lab-corpus.json'));\
+from collections import Counter;print(Counter(t['label']['failure_mode'] for t in d['traces']))"</code></pre>
+    <p>
+      Compare that distribution to the one you found by hand. Then read
+      <code>scripts/build_lab_corpus.py</code> and notice the honest limitation stated in its
+      docstring: these failures were planted, so the taxonomy you discovered was put there for
+      you to discover. Real error analysis has no answer key, and the categories that matter
+      most are usually the ones nobody would have thought to plant.
+    </p>
+    <p>
+      With an API key, <code>make corpus</code> produces traces from a real model. Run the same
+      annotation process over those and compare how the two experiences differ. That contrast is
+      the actual lesson of this module.
+    </p>
+    <div class="note">
+      <h4>Using the instructors' skills</h4>
+      <p style="font-size:14.5px">
+        Hamel Husain and Shreya Shankar publish companion skills for this workflow, including
+        <code>error-analysis</code> and <code>build-review-interface</code>. Install with
+        <code>/plugin marketplace add hamelsmu/evals-skills</code>. Do the manual pass first.
+        Reaching for a tool before you know what good looks like is precisely the failure this
+        module warns about.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that your categories are specific enough to write a test for.</b> If you
+        cannot imagine the assertion, the category is a feeling.</li>
+      <li><b>Check that you stopped because the curve flattened</b>, not because you got bored
+        or the meeting was on Thursday.</li>
+      <li><b>Check that two people would label the same trace the same way.</b> If not, the
+        problem is your category names, and L5 will fail for the same reason.</li>
+      <li><b>Check that you counted severity separately from frequency.</b> Sorting by count
+        alone will send you to fix the most common cosmetic issue.</li>
+      <li><b>Check that you read whole traces, not just final responses.</b> Half the failures
+        in this corpus are invisible from the last message.</li>
+      <li><b>Check that you are not coding the same trace twice under two names.</b> One trace,
+        one primary failure. Note the secondary separately if you must.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>How do you know when to stop reading traces, and what does the answer not depend on?</li>
+      <li>Give a failure name that would fail an inter-annotator agreement check, and fix it.</li>
+      <li>Your most frequent category is "response slightly too long". What should you do?</li>
+      <li>Why does the lab hide its labels until after you code?</li>
+      <li>What can a language model do for you in this process, and at what point?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="03-synthetic-data.html">&larr; L3 Synthetic Data</a>
+    <a href="05-evaluators.html">L5 Automated Evaluators &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

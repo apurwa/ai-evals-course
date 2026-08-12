@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L9 Cost, Latency and the Improve Loop</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 5 &rsaquo; L9</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 9</span><span class="dot">/</span><span>Module 5</span><span class="dot">/</span><span>~55 min</span></div>
+    <h1>Cost, Latency and the Improve Loop</h1>
+    <p class="lede">
+      Find the frontier where accuracy meets cost, choose a point on it deliberately, and change
+      one thing at a time against a test set you have not been reading.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can locate where your spend actually goes, decide which point on the accuracy and cost
+      frontier your product needs, and run an improvement loop that does not fool you.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Optimising by vibes. Somebody says the agent feels expensive, so the team switches to a
+      cheaper model, quality drops in a way nobody measures precisely, and three weeks later
+      they switch back. Nothing was learned because nothing was isolated.
+    </p>
+    <p>
+      The related failure is reward hacking your own loop. You iterate against the test set,
+      quality climbs beautifully, and you have optimised for that specific set of scenarios. The
+      number goes up. The product does not improve. This is why the test split is frozen and
+      read once.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Cost attribution</dt>
+      <dd>Per-span cost, so the question "what should we cut" has an answer. A session total
+        supports exactly one decision, which is to use the whole agent less.</dd>
+
+      <dt>The Pareto frontier</dt>
+      <dd>The set of configurations where you cannot improve accuracy without paying more, or
+        reduce cost without losing accuracy. Everything not on the frontier is strictly worse
+        than something else and should be discarded without discussion.</dd>
+
+      <dt>Choosing a point</dt>
+      <dd>The frontier is a fact about your system. Which point to sit on is a product decision:
+        what a failure costs you, what a customer will tolerate, what margin the feature needs.
+        Engineering finds the curve, the product owner picks the spot.</dd>
+
+      <dt>Step removal beats step improvement</dt>
+      <dd>Success compounds, so deleting a step often buys more than making one better, and it
+        is cheaper and faster too. Look for steps whose output nothing consumes.</dd>
+
+      <dt>Prompt caching</dt>
+      <dd>A long static system prompt re-sent every turn is usually the largest single line in
+        an agent's bill and the easiest to fix.</dd>
+
+      <dt>The improve loop</dt>
+      <dd>Change one thing, run the dev split, keep it if it helps, write down why. Touch the
+        test split once, at the end. If you cannot say which change produced a gain, you have
+        not learned anything you can repeat.</dd>
+
+      <dt>Reward hacking</dt>
+      <dd>Optimising the measurement rather than the thing. If your judge rewards long
+        explanations, you will get long explanations, and your metric will look excellent.</dd>
+    </dl>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>accuracy
+   ^
+   |                              . frontier, judge-gated retry
+0.9|                    . frontier 8 steps
+   |         . router
+0.8|   . mid-tier
+   |  . cache
+0.7| . 4 steps
+   |
+0.5|.small
+   +-------------------------------------------> cost
+   points below the curve are strictly worse.
+   points on it are a choice, and the choice is not engineering's to make alone.</code></pre>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 9</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Cost explorer and the frontier</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Real per-step and per-kind cost from the 120-trace corpus, so you can see where spend
+        concentrates before you have an opinion about it. Then a frontier exercise: identify
+        which configurations are dominated, and pick a point for three different products with
+        three different tolerances for being wrong.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/09-cost.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>python scripts/build_lab_data.py     # recompute cost from the corpus
+python -c "import json;d=json.load(open('docs/data/lab-data.json'));\
+print(d['l9']['by_model_step'])"</code></pre>
+    <p>
+      Look at cost by model call index. If step 0 dominates, your system prompt is the bill and
+      caching is the fix. If later steps dominate, context is growing each turn and the fix is
+      what you carry forward, not what you start with.
+    </p>
+    <p>
+      Then run the loop properly. Change <code>MAX_STEPS</code> in
+      <code>agent/support_agent.py</code> from 8 to 4, rebuild the corpus, and compare. One
+      variable, measured, written down.
+    </p>
+    <div class="note warn">
+      <h4>The numbers you can and cannot trust here</h4>
+      <p style="font-size:14.5px">
+        Cost <b>arithmetic</b> and the <b>shape</b> of the distribution are real, computed from
+        the corpus. The absolute dollars are not a measurement: token counts are placeholders
+        because no model was called, and the prices in <code>evals/pricing.json</code> are marked
+        <code>verified: false</code>. The frontier configurations in the lab are explicitly
+        illustrative and are labelled as such on the page. With an API key,
+        <code>make corpus</code> replaces every one of those with a number you measured.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that you changed one thing.</b> Two changes and a result is a story, not a
+        finding.</li>
+      <li><b>Check that you have not been iterating against the test set.</b> If you have, its
+        number is a dev number now and you need a fresh split.</li>
+      <li><b>Check whether a step can be deleted before trying to improve it.</b> Compounding
+        usually favours deletion.</li>
+      <li><b>Check that your judge cannot be gamed by the change you are making.</b> If longer
+        answers score better, a change that lengthens answers will look like a win.</li>
+      <li><b>Check that your prices are current.</b> Model pricing moves, and a frontier drawn on
+        last year's prices recommends last year's answer.</li>
+      <li><b>Check latency separately from cost.</b> They usually correlate and occasionally
+        invert, and users feel one of them.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Your first model call is 60 percent of spend. What is the fix, and why is it not "use a
+        smaller model"?</li>
+      <li>Two configs: 0.88 accuracy at $9, and 0.86 at $14. What do you do with the second?</li>
+      <li>Who decides which point on the frontier to ship, and what do they need to know?</li>
+      <li>Your dev score rose 6 points and test rose 1. What most likely happened?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="08-safety.html">&larr; L8 Safety</a>
+    <a href="10-communicating.html">L10 Talking About This Work &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

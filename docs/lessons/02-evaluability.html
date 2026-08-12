@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L2 Designing for Evaluability</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 1 &rsaquo; L2</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 2</span><span class="dot">/</span><span>Module 1</span><span class="dot">/</span><span>~55 min</span></div>
+    <h1>Designing for Evaluability</h1>
+    <p class="lede">
+      Instrument the agent before it takes traffic, so that every run leaves behind a trace
+      you can actually answer questions from.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can design a trace schema by working backwards from the questions you will need to
+      answer, rather than forwards from what happens to be convenient to log.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Instrumentation added after an agent is already running captures whatever was easy to
+      capture. Three weeks later something breaks, you open the logs, and the one field that
+      would settle it is not there. You add it, ship, and wait for the bug to happen again.
+    </p>
+    <p>
+      The expensive version of this is a regression you cannot attribute. Quality drops, four
+      things changed that week, and no trace records which prompt version produced which run.
+      Now you are bisecting production by memory. A twelve character hash on every model call
+      would have answered it in a minute, and it costs nothing to add on day one.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Span</dt>
+      <dd>One unit of work with a start, an end, a status, and a parent. Model calls, tool
+        calls, guard decisions, and handoffs are all spans. A trace is the tree they form.</dd>
+
+      <dt>Why a tree and not a log</dt>
+      <dd>A flat log can tell you what happened. A tree tells you what happened <i>inside</i>
+        what. "The refund failed" and "the refund failed inside the retry that followed the
+        first denial" are different facts, and only one of them is actionable.</dd>
+
+      <dt>Attribution</dt>
+      <dd>The property that lets you connect an observed behaviour to the change that caused
+        it. In practice: a prompt hash, a model name, and a code version on every span that
+        could be affected by them.</dd>
+
+      <dt>Evaluability</dt>
+      <dd>A design property, decided up front, that determines whether the system can be
+        measured at all. A system that is not evaluable is not made evaluable by wanting it
+        harder later. It is made evaluable by changing it.</dd>
+
+      <dt>Denials as evidence</dt>
+      <dd>A trace that only records successes cannot distinguish an attack that was blocked
+        from an attack that never happened. Both look like silence.</dd>
+    </dl>
+
+    <div class="note">
+      <h4>Two clocks, and they are not the same clock</h4>
+      <p style="font-size:14.5px">
+        The <b>world</b> clock in this repository is frozen at 2026-08-01, because return
+        window arithmetic must not drift and rot the corpus. <b>Trace</b> timestamps are real
+        wall clock, because they record what actually happened during a run. Conflating these
+        is a mistake in both directions: a frozen trace clock makes latency meaningless, and a
+        live world clock makes yesterday's expected answers wrong today.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <p>Design the schema by writing the questions first, then the field that answers each one.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Question you will be asked</th><th>Field that answers it</th><th>Cost of not having it</th></tr>
+        <tr><td>Which change caused this regression?</td><td><code>prompt_hash</code> on every model call</td><td>Bisecting production from memory</td></tr>
+        <tr><td>Which step is burning the budget?</td><td><code>cost_usd</code> per span</td><td>You can only cut the whole agent</td></tr>
+        <tr><td>Was this attack blocked or absent?</td><td>denial spans, always recorded</td><td>Security theatre</td></tr>
+        <tr><td>Did it consult the source of truth?</td><td>tool call spans with args</td><td>Cannot tell recall from lookup</td></tr>
+        <tr><td>Why did it stop?</td><td>terminal event on the root span</td><td>Timeouts look like short chats</td></tr>
+      </table>
+    </div>
+    <p>
+      Every row is a question somebody will genuinely ask you. If a field on your schema does
+      not answer one, consider whether it is earning its place; if a question in your head has
+      no field, that is the gap to close before launch.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 2</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Trace reader and cost waterfall</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Explore real span trees from the corpus, see where the money goes step by step, then
+        work the harder half: a deliberately under-instrumented trace of a known failure. You
+        have to say what you would need logged, and why the trace as it stands cannot tell you.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/02-trace-reader.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <p>Read the schema, then prove to yourself that the denial path is really recorded.</p>
+    <pre><code>python agent/support_agent.py --selftest    # watch the denial assertions
+python scripts/build_redteam.py            # 15 attacks, real gate, real verdicts</code></pre>
+    <p>
+      Then open <code>agent/tracing.py</code> and read the module docstring. Each field is
+      justified in terms of a question it answers. Now delete one mentally, say
+      <code>prompt_hash</code>, and work out which of the questions above becomes unanswerable.
+    </p>
+    <p>
+      For the full backend, <code>pip install -r requirements-tracing.txt</code> and bring up
+      Langfuse from <code>infra/</code>. Install it into a virtualenv; it pins
+      <code>opentelemetry</code> and <code>protobuf</code> tightly enough to disturb anything
+      sharing the environment.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that you can attribute a regression to a change.</b> If two prompt versions
+        produce identically-shaped traces, you have logging but not attribution.</li>
+      <li><b>Check that cost and latency exist per span, not just per session.</b> A session
+        total cannot tell you what to cut, which makes every optimisation a guess.</li>
+      <li><b>Check what a timeout looks like.</b> If an agent that ran out of steps produces the
+        same trace shape as one that finished early, you will misclassify it forever.</li>
+      <li><b>Check that you are not logging the whole prompt on every span.</b> Traces get
+        expensive and, worse, they start carrying customer data into systems that were never
+        scoped to hold it.</li>
+      <li><b>Check that sampling does not drop the interesting traces.</b> Sample the boring
+        ones. Keep every denial, every error, and every escalation.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Your agent gets slower on Tuesday. Which spans do you look at, and what field tells
+        you whether it is the model or a tool?</li>
+      <li>Why is a permission denial recorded as a span rather than raised as an exception?</li>
+      <li>What breaks if trace timestamps use the frozen world clock instead of wall clock?</li>
+      <li>Name a field you would refuse to put on a span, and say what it would cost you.</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="01-foundations.html">&larr; L1 Foundations</a>
+    <a href="03-synthetic-data.html">L3 Synthetic Data &rarr;</a>
+  </div>
+
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>

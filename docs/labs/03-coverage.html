@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 3 Coverage Grid</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .prof { font-family: var(--mono); font-size: 12px; }
+  .prof-row { display: grid; grid-template-columns: 1fr 74px 96px; gap: 10px; padding: 7px 12px; border-top: 1px solid var(--line-soft); align-items: center; }
+  .prof-row:first-child { border-top: none; }
+  .prof-row.absent { background: var(--signal-wash); }
+  /* The three boolean axes. Rendered as fixed-width badges rather than bare
+     letters, which ran together into an unreadable "FSHZRC" when all three
+     were off and gave no hint that they were three separate flags. */
+  .flag { display: inline-block; min-width: 24px; text-align: center; margin-left: 4px;
+    border-radius: 3px; padding: 1px 4px; font-size: 10.5px;
+    color: var(--text-3); background: var(--surface-2); border: 1px solid var(--line-soft); }
+  .flag.on { color: var(--signal); background: var(--signal-wash); border-color: var(--signal-line); font-weight: 600; }
+  .axis-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 9px; }
+  .axis-row > b { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); min-width: 108px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/03-synthetic-data.html">L3</a> &rsaquo; Lab 3</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 3</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~25 min</span></div>
+    <h1>Coverage grid</h1>
+    <p class="lede">
+      Every dimension profile the world produces, every one it does not, and an exercise in
+      picking the sampling strategy that actually answers the question asked.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>The three numbers</h2><span class="tag">computed from the world</span></div>
+    <div class="lab-panel"><div class="stat-row" id="agg"></div></div>
+    <p style="font-size:14.5px;color:var(--text-2);max-width:70ch">
+      The gap between what the rulebook allows and what the world produces is the set of
+      questions your test data physically cannot ask. Most teams never compute it, compare
+      their scenario count to their own expectations instead, and conclude coverage is fine.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Filter the space</h2><span class="tag">click to narrow</span></div>
+    <div class="lab-panel" id="axes"></div>
+    <p id="filterNote" style="font-size:14px;color:var(--text-2)"></p>
+    <div class="table-scroll" style="margin-top:12px;max-height:480px;overflow-y:auto">
+      <div class="prof" id="grid"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Which sampling answers the question?</h2><span class="tag">the actual exercise</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Five questions a real stakeholder might ask. For each, pick the sampling strategy whose
+      numbers would answer it. Choosing wrong here is how a team ends up confidently reporting
+      a figure that does not mean what they think it means.
+    </p>
+    <div id="quiz" style="margin-top:18px"></div>
+    <div class="actions">
+      <button class="btn" id="check" disabled>Check my answers</button>
+      <span class="score" id="score"></span>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/03-synthetic-data.html">&larr; L3</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-data.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.LAB_DATA && window.LAB_DATA.l3;
+  if (!D) { document.getElementById("grid").textContent = "data did not load; run make check"; return; }
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+
+  var holes = D.combinatorial_space - D.distinct_in_world;
+  document.getElementById("agg").innerHTML =
+    stat(D.combinatorial_space, "rulebook allows") +
+    stat(D.distinct_in_world, "world produces", "good") +
+    stat(holes, "cannot occur", "bad") +
+    stat(D.distinct_sampled, "sampled by suite", "good");
+
+  var filters = {};
+  var elAxes = document.getElementById("axes");
+  Object.keys(D.axes).forEach(function (axis) {
+    var row = document.createElement("div");
+    row.className = "axis-row";
+    row.innerHTML = "<b>" + esc(axis.replace(/_/g, " ")) + "</b>";
+    var wrap = document.createElement("span");
+    wrap.className = "pill-row";
+    D.axes[axis].forEach(function (v) {
+      var b = document.createElement("button");
+      b.className = "pill"; b.textContent = v; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        filters[axis] = filters[axis] === v ? null : v;
+        Array.prototype.forEach.call(wrap.children, function (c) {
+          c.setAttribute("aria-pressed", String(c.textContent === filters[axis]));
+        });
+        render();
+      });
+      wrap.appendChild(b);
+    });
+    row.appendChild(wrap); elAxes.appendChild(row);
+  });
+
+  ["final_sale", "hazmat", "recalled"].forEach(function (flag) {
+    var row = document.createElement("div");
+    row.className = "axis-row";
+    row.innerHTML = "<b>" + flag.replace(/_/g, " ") + "</b>";
+    var wrap = document.createElement("span"); wrap.className = "pill-row";
+    ["true", "false"].forEach(function (v) {
+      var b = document.createElement("button");
+      b.className = "pill danger"; b.textContent = v; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        filters[flag] = filters[flag] === v ? null : v;
+        Array.prototype.forEach.call(wrap.children, function (c) {
+          c.setAttribute("aria-pressed", String(c.textContent === filters[flag]));
+        });
+        render();
+      });
+      wrap.appendChild(b);
+    });
+    row.appendChild(wrap); elAxes.appendChild(row);
+  });
+
+  function render() {
+    var rows = D.rows.filter(function (r) {
+      return Object.keys(filters).every(function (k) {
+        if (!filters[k]) return true;
+        return String(r.profile[k]) === filters[k];
+      });
+    });
+
+    var active = Object.keys(filters).filter(function (k) { return filters[k]; });
+    document.getElementById("filterNote").innerHTML = rows.length
+      ? "<b>" + rows.length + "</b> profile" + (rows.length === 1 ? "" : "s") + " match" +
+        (active.length ? " (" + esc(active.join(", ")) + ")" : "") + "."
+      : '<b style="color:var(--signal)">No profile in the world matches this combination.</b> ' +
+        "That is a hole: the agent has never been asked this question, and no amount of running " +
+        "the suite will change that. Deciding whether it matters is a product judgment, but you " +
+        "cannot make it without first knowing the hole is there.";
+
+    var html = "";
+    rows.slice(0, 200).forEach(function (r) {
+      var p = r.profile;
+      html += '<div class="prof-row' + (r.sampled_total ? "" : " absent") + '">' +
+        "<span>" + esc(p.tier) + " / " + esc(p.condition) + " / " + esc(p.order_status) +
+        ' <span class="flag' + (p.final_sale ? " on" : "") + '">FS</span>' +
+        '<span class="flag' + (p.hazmat ? " on" : "") + '">HZ</span>' +
+        '<span class="flag' + (p.recalled ? " on" : "") + '">RC</span>' +
+        ' &rarr; <b>' + esc(p.decision) + "</b></span>" +
+        '<span style="color:var(--text-3)">' + r.world_count + " items</span>" +
+        '<span style="color:var(--text-2)">' +
+        (r.sampled_total ? Object.keys(r.sampled).map(function (k) { return k + ":" + r.sampled[k]; }).join(" ") : "not sampled") +
+        "</span></div>";
+    });
+    if (rows.length > 200) html += '<div class="prof-row"><span style="color:var(--text-3)">... and ' + (rows.length - 200) + " more</span><span></span><span></span></div>";
+    document.getElementById("grid").innerHTML = html;
+  }
+
+  // ---- sampling quiz
+  var Q = [
+    { q: "What success rate are customers actually experiencing right now?",
+      a: "prevalence",
+      why: "Only prevalence sampling matches the real mix of traffic. A coverage-sampled suite deliberately over-represents rare cases, so its success rate describes a customer nobody is." },
+    { q: "Does the agent handle recalled items correctly at all?",
+      a: "coverage",
+      why: "Recalls are rare, so prevalence sampling might contain zero of them and report perfect health for a safety path that was never tested. Coverage guarantees at least one." },
+    { q: "Does the 30-day return window fire on the right day?",
+      a: "boundary",
+      why: "This is an off-by-one question. It needs day 29, day 30 and day 31 specifically, and neither of the other strategies will reliably produce all three." },
+    { q: "If we raise the auto-approve limit to $300, what breaks?",
+      a: "boundary",
+      why: "Another limit question. You need density around the old and new limits, not a representative sample of everything." },
+    { q: "Should we invest in the returns flow or the warranty flow next quarter?",
+      a: "prevalence",
+      why: "A resourcing decision follows the volume of real traffic. Coverage sampling would make a rare flow look as important as a common one, which is exactly the wrong input to this decision." }
+  ];
+
+  var picks = {}, elQ = document.getElementById("quiz");
+  Q.forEach(function (item, i) {
+    var d = document.createElement("div");
+    d.className = "lab-panel";
+    d.innerHTML = '<p style="font-size:14.5px;font-weight:600;margin-bottom:10px">' + esc(item.q) + "</p>";
+    var row = document.createElement("div"); row.className = "pill-row";
+    ["coverage", "prevalence", "boundary"].forEach(function (s) {
+      var b = document.createElement("button");
+      b.className = "pill"; b.textContent = s; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        picks[i] = s;
+        Array.prototype.forEach.call(row.children, function (c) { c.setAttribute("aria-pressed", String(c.textContent === s)); });
+        document.getElementById("check").disabled = Object.keys(picks).length < Q.length;
+      });
+      row.appendChild(b);
+    });
+    d.appendChild(row);
+    var v = document.createElement("div"); v.className = "verdict"; v.style.marginTop = "12px";
+    v.style.paddingTop = "12px"; v.style.borderTop = "1px dashed var(--line)";
+    v.style.display = "none"; v.style.fontSize = "14px";
+    d.appendChild(v);
+    elQ.appendChild(d);
+  });
+
+  document.getElementById("check").addEventListener("click", function () {
+    var right = 0;
+    Array.prototype.forEach.call(elQ.children, function (d, i) {
+      var ok = picks[i] === Q[i].a;
+      if (ok) right++;
+      var v = d.querySelector(".verdict");
+      v.style.display = "block";
+      v.innerHTML = '<span style="font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:4px;margin-right:9px;' +
+        (ok ? "color:var(--ok);background:var(--ok-wash);border:1px solid var(--ok-line)" : "color:var(--signal);background:var(--signal-wash);border:1px solid var(--signal-line)") +
+        '">' + (ok ? "correct" : "no") + "</span><b>" + Q[i].a + ".</b> " + esc(Q[i].why);
+    });
+    document.getElementById("score").textContent = right + " of " + Q.length;
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

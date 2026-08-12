@@ -16,11 +16,19 @@ Built in the open, so here is where it actually stands.
 | World, ground-truth rules, permission layer, correctness gates | Built and tested |
 | 650 scenarios with computed expected outcomes | Built |
 | Support agent, trace schema, agent selftest | Built, runs with no API key |
-| **L1 Foundations, lesson and browser lab** | **Written, works** |
-| L2 to L10 lesson pages and labs | Outlined, not written |
+| **All 10 lessons and all 10 browser labs** | **Written, work with no install** |
+| Local (Track B) labs | Commands documented in each lesson |
 | Model-generated trace corpus | Needs an API key run |
 
-Anything not written yet is left unlinked rather than linked to a stub.
+**One thing to be clear about.** The browser labs run on a corpus of 120 traces
+produced by the real control loop, the real permission layer and the real
+database, but with **scripted** tool calls rather than model-generated ones. So
+the mechanics are real, every denial is a real denial, and every refund
+comparison is against a really computed correct answer. The *distribution* of
+failures is not real: it was planted, which means the taxonomy you discover in
+L4 is one this repository put there for you to discover. Every lab says so on
+its own page. `make corpus` with your own API key replaces it with traces from a
+real model, and the contrast is the point of Module 2.
 
 ## Track A: run it in your browser
 
@@ -85,9 +93,12 @@ scripts make drift impossible to ship quietly.
 | Gate | What it catches |
 |---|---|
 | `scripts/check_coverage.py` | A failure mode the world can never produce. Caught a real one: no delivery was older than nine months, so a twelve-month warranty could never lapse and `warranty_expired` was unreachable. |
-| `scripts/check_permissions.py` | `rules.py` and `permissions.py` disagreeing about the same policy. Sweeps every boundary at limit-1, limit, and limit+1. |
+| `scripts/check_permissions.py` | `rules.py` and `permissions.py` disagreeing about the same policy. Sweeps every boundary at limit-1, limit, and limit+1, and asserts every tool a role may call is actually reachable. That last one caught a real bug: `escalate_to_human` was in no risk tier, defaulted to the highest, and was permanently denied, so the agent could never escalate. |
+| `scripts/build_lab_corpus.py` | A failure mode that stops appearing in the lab corpus, which would make L4's taxonomy incomplete and L5's true positive rate uncomputable for that class. |
+| `scripts/build_redteam.py` | An attack that used to be refused and now succeeds. Fails the build as a security regression. |
+| `scripts/check_site.py` | Broken links, unbalanced tags, and any use of `fetch` (which would break the file:// promise Track A depends on). |
 
-Both are release gates, not niceties.
+These are release gates, not niceties. Every one of them has caught something real.
 
 ## Authorization is enforced in code
 

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 6 Trajectory Scorer</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .rule { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: start; padding: 13px 0; border-top: 1px solid var(--line-soft); }
+  .rule:first-child { border-top: none; }
+  .rule > b { font-family: var(--mono); font-size: 12px; color: var(--accent); padding-top: 5px; }
+  .lg { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 11.5px; margin-top: 10px; }
+  .lg span::before { content: "\25CF"; margin-right: 5px; }
+  .lg .a::before { color: var(--accent); }
+  .lg .s::before { color: var(--signal); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/06-agents.html">L6</a> &rsaquo; Lab 6</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 6</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~30 min</span></div>
+    <h1>Trajectory scorer</h1>
+    <p class="lede">
+      Define what a correct path looks like, score 120 real traces against it, then see the gap
+      between what the agent can do and what it does reliably.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><h2>Part 1: define the path</h2><span class="tag">required and forbidden</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Tick the tools that <b>must</b> appear for each kind of request. Your definition is scored
+      against all 120 traces immediately. Note that you are not writing a golden transcript:
+      order is not checked, only presence, because several orders are acceptable.
+    </p>
+    <div class="lab-panel" style="margin-top:16px" id="rules"></div>
+
+    <div class="grid-2" style="align-items:start">
+      <div class="matrix" id="matrix"></div>
+      <div class="lab-panel">
+        <div class="stat-row" id="metrics"></div>
+        <div id="verdict" style="margin-top:14px;font-size:14px"></div>
+      </div>
+    </div>
+
+    <p style="font-size:13.5px;color:var(--text-3);margin-top:12px">
+      Ground truth here is the corpus label. A trajectory rule that disagrees with it is not
+      automatically wrong: you may have encoded a stricter policy than the corpus does. The
+      disagreements are the interesting part, which is why they are listed below.
+    </p>
+    <div class="tr-list" id="disagree" style="margin-top:12px"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Part 2: capable versus reliable</h2><span class="tag">real per-kind rates</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Per-kind success rates below are measured from the corpus. The two curves are what those
+      rates imply if a customer needs the agent to succeed k times in a row, against what a
+      research benchmark would report for k attempts.
+    </p>
+
+    <div class="lab-panel" style="margin-top:16px">
+      <div class="pill-row" id="kinds"></div>
+      <div class="stat-row" id="rate" style="margin-top:16px"></div>
+    </div>
+
+    <div class="lab-panel">
+      <svg class="chart" id="chart" viewBox="0 0 460 230" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="lg">
+        <span class="a">pass@k, capability, at least one of k works</span>
+        <span class="s">pass^k, reliability, all k work</span>
+      </div>
+    </div>
+    <p id="gap" style="font-size:14.5px;color:var(--text-2)"></p>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/06-agents.html">&larr; L6</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../data/lab-corpus.js"></script>
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.LAB_CORPUS;
+  if (!C) { document.getElementById("rules").textContent = "corpus did not load; run make check"; return; }
+  var T = C.traces;
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+  function pct(x){ return (100*x).toFixed(1) + "%"; }
+  function tools(t){ return t.spans.filter(function(s){return s.kind==="tool_call";}).map(function(s){return (s.attributes||{}).tool;}); }
+
+  var TOOLS = ["lookup_order", "check_return_eligibility", "get_policy",
+               "create_return_label", "issue_refund", "escalate_to_human"];
+  var KINDS = [];
+  T.forEach(function (t) { if (KINDS.indexOf(t.scenario.kind) < 0) KINDS.push(t.scenario.kind); });
+  KINDS.sort();
+
+  // Sensible starting point so the lab is not blank on arrival.
+  var required = {
+    return_request: { lookup_order: true, check_return_eligibility: true },
+    refund_request: { check_return_eligibility: true },
+    warranty_claim: { get_policy: true },
+    address_change: {}, order_status: {}, supervisor_request: { escalate_to_human: true },
+    out_of_scope: {}
+  };
+  var forbidDenials = true;
+
+  var elR = document.getElementById("rules");
+  KINDS.forEach(function (k) {
+    var row = document.createElement("div");
+    row.className = "rule";
+    row.innerHTML = "<b>" + esc(k.replace(/_/g, " ")) + "</b>";
+    var wrap = document.createElement("span"); wrap.className = "pill-row";
+    TOOLS.forEach(function (tool) {
+      var b = document.createElement("button");
+      b.className = "pill"; b.textContent = tool;
+      required[k] = required[k] || {};
+      b.setAttribute("aria-pressed", String(!!required[k][tool]));
+      b.addEventListener("click", function () {
+        required[k][tool] = !required[k][tool];
+        b.setAttribute("aria-pressed", String(!!required[k][tool]));
+        score();
+      });
+      wrap.appendChild(b);
+    });
+    row.appendChild(wrap); elR.appendChild(row);
+  });
+  var extra = document.createElement("div");
+  extra.className = "rule";
+  extra.innerHTML = "<b>any kind</b>";
+  var w2 = document.createElement("span"); w2.className = "pill-row";
+  var fb = document.createElement("button");
+  fb.className = "pill danger"; fb.textContent = "no permission denials";
+  fb.setAttribute("aria-pressed", "true");
+  fb.addEventListener("click", function () {
+    forbidDenials = !forbidDenials;
+    fb.setAttribute("aria-pressed", String(forbidDenials)); score();
+  });
+  w2.appendChild(fb); extra.appendChild(w2); elR.appendChild(extra);
+
+  function predicts(t) {
+    var have = tools(t);
+    var req = required[t.scenario.kind] || {};
+    var missing = Object.keys(req).some(function (tool) { return req[tool] && have.indexOf(tool) < 0; });
+    var denied = forbidDenials && t.totals.permission_denials > 0;
+    return missing || denied;   // true means "trajectory is bad"
+  }
+
+  function score() {
+    var TP=0, FP=0, TN=0, FN=0, bad=[];
+    T.forEach(function (t) {
+      var pred = predicts(t), actual = !t.label.correct;
+      if (pred && actual) TP++;
+      else if (pred && !actual) { FP++; bad.push([t, "flagged, but the corpus calls it clean"]); }
+      else if (!pred && actual) { FN++; bad.push([t, "missed: " + (t.label.failure_mode || "?")]); }
+      else TN++;
+    });
+
+    document.getElementById("matrix").innerHTML =
+      '<div class="h"></div><div class="h">actually broken</div><div class="h">actually fine</div>' +
+      '<div class="h">rule: bad path</div><div class="tp"><span class="big">' + TP + "</span>caught</div>" +
+      '<div class="fp"><span class="big">' + FP + "</span>false alarm</div>" +
+      '<div class="h">rule: ok path</div><div class="fn"><span class="big">' + FN + "</span>missed</div>" +
+      '<div class="tn"><span class="big">' + TN + "</span>fine</div>";
+
+    var tpr = (TP+FN) ? TP/(TP+FN) : 0, tnr = (TN+FP) ? TN/(TN+FP) : 0;
+    document.getElementById("metrics").innerHTML =
+      stat(tpr.toFixed(2), "TPR", tpr>=0.8?"good":"bad") +
+      stat(tnr.toFixed(2), "TNR", tnr>=0.8?"good":"bad") +
+      stat(TP+FP, "flagged") + stat(FN, "missed", FN?"bad":"good");
+
+    document.getElementById("verdict").innerHTML = tpr >= 0.8 && tnr >= 0.8
+      ? '<b style="color:var(--ok)">A usable trajectory rule.</b> Notice it is pure code: no model ' +
+        "was asked anything. Most trajectory properties are set membership, and paying a model to " +
+        "evaluate them is slow, expensive, and occasionally wrong."
+      : "Keep adjusting. A trajectory rule that misses a lot is usually missing a required tool; " +
+        "one that false-alarms is usually requiring something that is genuinely optional.";
+
+    var el = document.getElementById("disagree");
+    el.innerHTML = bad.slice(0, 25).map(function (p) {
+      return '<div class="tr-item"><span class="id">' + esc(p[0].scenario.id) + "</span> " +
+        esc(p[1]) + '<br><span style="color:var(--text-3);font-size:12px">' +
+        esc(p[0].scenario.message.slice(0, 80)) + "</span></div>";
+    }).join("") || '<div class="tr-item">No disagreements. Suspicious rather than impressive: check you have not simply required nothing.</div>';
+  }
+
+  // ---- Part 2
+  var rates = {};
+  KINDS.forEach(function (k) {
+    var rows = T.filter(function (t) { return t.scenario.kind === k; });
+    rates[k] = rows.filter(function (t) { return t.label.correct; }).length / rows.length;
+  });
+  // Open on the largest kind rather than alphabetically first. address_change
+  // sorts first and happens to be the worst-performing slice in this corpus, so
+  // defaulting to it opened the lab on a 0.4 percent reliability figure. True,
+  // but a misleading first impression of the agent as a whole.
+  var cur = KINDS.slice().sort(function (a, b) {
+    return T.filter(function (t) { return t.scenario.kind === b; }).length -
+           T.filter(function (t) { return t.scenario.kind === a; }).length;
+  })[0];
+
+  var elK = document.getElementById("kinds");
+  KINDS.forEach(function (k) {
+    var b = document.createElement("button");
+    b.className = "pill"; b.textContent = k.replace(/_/g, " "); b.dataset.k = k;
+    b.addEventListener("click", function () { cur = k; drawK(); });
+    elK.appendChild(b);
+  });
+
+  function drawK() {
+    Array.prototype.forEach.call(elK.children, function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.k === cur));
+    });
+    var p = rates[cur];
+    document.getElementById("rate").innerHTML =
+      stat(pct(p), "single-run success", p >= 0.8 ? "good" : "bad") +
+      stat(pct(Math.pow(p, 3)), "3 in a row", "bad") +
+      stat(pct(Math.pow(p, 5)), "5 in a row", "bad") +
+      stat(pct(1 - Math.pow(1 - p, 3)), "pass@3", "good");
+
+    var W=460,H=230,P=34, KMAX=8;
+    function X(k){ return P + (W-P-14)*(k-1)/(KMAX-1); }
+    function Y(v){ return H-P-(H-P-14)*v; }
+    var at="", hat="", dots="";
+    for (var k=1;k<=KMAX;k++){
+      var a=1-Math.pow(1-p,k), h=Math.pow(p,k);
+      at += (k===1?"M":"L")+X(k).toFixed(1)+" "+Y(a).toFixed(1);
+      hat += (k===1?"M":"L")+X(k).toFixed(1)+" "+Y(h).toFixed(1);
+      dots += '<circle class="dot" cx="'+X(k).toFixed(1)+'" cy="'+Y(a).toFixed(1)+'" r="2.5"/>' +
+              '<circle class="dot sig" cx="'+X(k).toFixed(1)+'" cy="'+Y(h).toFixed(1)+'" r="2.5"/>';
+    }
+    var grid="";
+    [0,0.25,0.5,0.75,1].forEach(function(v){
+      grid += '<line class="grid" x1="'+P+'" y1="'+Y(v)+'" x2="'+(W-8)+'" y2="'+Y(v)+'"/>' +
+              '<text class="lbl" x="6" y="'+(Y(v)+3)+'">'+(v*100)+'</text>';
+    });
+    var xl="";
+    for (var k2=1;k2<=KMAX;k2++) xl += '<text class="lbl" x="'+(X(k2)-3)+'" y="'+(H-P+14)+'">'+k2+'</text>';
+    document.getElementById("chart").innerHTML = grid +
+      '<line class="axis" x1="'+P+'" y1="'+(H-P)+'" x2="'+(W-8)+'" y2="'+(H-P)+'"/>' +
+      '<path class="ln" d="'+at+'"/><path class="ln" style="stroke:var(--signal)" d="'+hat+'"/>' + dots + xl +
+      '<text class="lbl" x="'+(W/2-14)+'" y="'+(H-6)+'">k attempts</text>';
+
+    var five = Math.pow(p,5), cap5 = 1-Math.pow(1-p,5);
+    document.getElementById("gap").innerHTML =
+      "For <b>" + esc(cur.replace(/_/g," ")) + "</b>, a benchmark reporting pass@5 would claim <b>" +
+      pct(cap5) + "</b>. A customer who needs five consecutive correct interactions gets <b>" +
+      pct(five) + "</b>. Same agent, same corpus, same arithmetic. Only one of those numbers " +
+      "describes an experience anybody actually has.";
+  }
+
+  score(); drawK();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 10 Interview Drill</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .q { margin-bottom: 16px; }
+  .q .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px; }
+  .q .who { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-wash); border: 1px solid var(--accent-line); border-radius: 4px; padding: 2px 8px; }
+  .q h4 { font-family: var(--sans); font-size: 14.5px; font-weight: 600; margin: 0; }
+  .q textarea { min-height: 92px; resize: vertical; }
+  .rub { font-size: 13.5px; color: var(--text-2); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .rub b { color: var(--text); }
+  .done-dot { color: var(--ok); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; <a href="../lessons/10-communicating.html">L10</a> &rsaquo; Lab 10</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lab 10</span><span class="dot">/</span><span>browser</span><span class="dot">/</span><span>~45 min</span></div>
+    <h1>Interview drill</h1>
+    <p class="lede">
+      Twelve questions about work you have actually done, each with a rubric for what a strong
+      answer contains. Saved in your browser as you type.
+    </p>
+  </header>
+
+  <div class="note" style="margin-top:24px">
+    <h4>How to use this</h4>
+    <p style="font-size:14.5px">
+      Write your answer before opening the rubric. Reading it first turns this into a
+      comprehension exercise, which is the same mistake the L4 lab warns about. Answers save
+      automatically and stay on this machine.
+    </p>
+  </div>
+
+  <section>
+    <div class="lab-panel"><div class="stat-row" id="prog"></div></div>
+  </section>
+
+  <section id="qs"></section>
+
+  <section>
+    <div class="sec-head"><h2>Portfolio summary</h2><span class="tag">assembled from your answers</span></div>
+    <p style="max-width:70ch;color:var(--text-2)">
+      Generates a plain-text summary from what you wrote, ready to paste into a document, a
+      README, or a message to a hiring manager. Nothing leaves your browser.
+    </p>
+    <p style="margin-top:14px">
+      <button class="btn" id="gen">Generate</button>
+      <button class="btn ghost" id="clear">Clear all answers</button>
+    </p>
+    <pre id="out" style="margin-top:16px;display:none;white-space:pre-wrap"></pre>
+  </section>
+
+  <div class="pager">
+    <a href="../lessons/10-communicating.html">&larr; L10</a>
+    <a href="../index.html">Course home &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+<script>
+(function () {
+  "use strict";
+  var KEY = "wayfarer-l10-answers";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||"")+'">'+v+'</div><div class="l">'+l+'</div></div>';}
+
+  var Q = [
+    { id: "onemin", who: "any interview", q: "Walk me through what you built.",
+      r: "<b>Strong:</b> system in one sentence, the failure you found, how you measured it, what changed, what is next. Under 90 seconds. <b>Weak:</b> a list of technologies, or starting with architecture." },
+    { id: "levels", who: "engineering", q: "How do you decide whether an agent run succeeded?",
+      r: "<b>Strong:</b> three levels, outcome, trajectory and step, with a concrete example where they disagree. The under-refund case is ideal: outcome fails, every permission check passes. <b>Weak:</b> 'we check if the output is correct'." },
+    { id: "judge", who: "engineering", q: "How do you know your LLM judge is any good?",
+      r: "<b>Strong:</b> TPR and TNR against human labels, kappa above 0.6, validated on data it was not tuned on, and an explanation of why overall accuracy misleads under class imbalance. <b>Weak:</b> 'it agreed with us 94 percent of the time'." },
+    { id: "codecheck", who: "engineering", q: "When would you not use a model as an evaluator?",
+      r: "<b>Strong:</b> anything decidable in code. Tool call presence, amount comparisons, schema validity. A model asked to count tool calls is a slow, expensive, occasionally wrong set membership test. <b>Weak:</b> 'when it is too expensive'." },
+    { id: "errors", who: "engineering", q: "How did you find the failures in the first place?",
+      r: "<b>Strong:</b> open coding on real traces, axial grouping, stopped when the saturation curve flattened rather than at a fixed count. Names specific enough to write a test from. <b>Weak:</b> 'we looked at some outputs'." },
+    { id: "reliability", who: "product", q: "The model benchmark says 95 percent. Why is the product still bad?",
+      r: "<b>Strong:</b> per-step versus end to end. Five steps at 0.95 is 0.77. Plus pass@k versus pass^k: benchmarks report capability, customers experience reliability. <b>Weak:</b> blaming the benchmark without arithmetic." },
+    { id: "security", who: "security", q: "How do you stop prompt injection?",
+      r: "<b>Strong:</b> you do not, reliably, so authorization holds in code the model cannot reach. Design assuming the model is already compromised. Gate arguments come from the database, never from the model. Classifiers are defence in depth, never the boundary. <b>Weak:</b> 'we added instructions to the system prompt'." },
+    { id: "gap", who: "security", q: "What does your permission layer not protect against?",
+      r: "<b>Strong:</b> naming the asymmetry unprompted. Ours blocks over-refunds and permits under-refunds, because every rule is about company exposure. Catching that needs an eval, not a permission rule. <b>Weak:</b> claiming it covers everything." },
+    { id: "gate", who: "engineering manager", q: "How did you decide the CI thresholds?",
+      r: "<b>Strong:</b> per severity, critical at zero, cosmetic on a dashboard rather than the gate; sample size chosen so the threshold sits outside the noise band. Mentions that an overridden gate is worse than no gate. <b>Weak:</b> a single number for everything." },
+    { id: "cost", who: "product", q: "Can we make it cheaper?",
+      r: "<b>Strong:</b> per-span cost attribution first, then a frontier, then a product decision about which point. Notes that removing a step often beats improving one because success compounds. <b>Weak:</b> 'we could use a smaller model'." },
+    { id: "limit", who: "any interview", q: "What is the weakest part of what you built?",
+      r: "<b>Strong:</b> a specific, real limitation named without prompting, and what you would do about it with two more weeks. <b>Weak:</b> a strength in disguise, or 'nothing really'." },
+    { id: "money", who: "exec", q: "Why should we fund this?",
+      r: "<b>Strong:</b> a failure rate converted into currency or risk, with assumptions stated. 'Under-refunds at 3 percent of 40,000 monthly returns' is actionable. <b>Weak:</b> quoting a TPR to someone who does not want one." }
+  ];
+
+  var elQ = document.getElementById("qs");
+  Q.forEach(function (item) {
+    var d = document.createElement("div");
+    d.className = "lab-panel q";
+    d.innerHTML = '<div class="head"><span class="who">' + esc(item.who) + "</span>" +
+      "<h4>" + esc(item.q) + '</h4><span class="done-dot" id="dot-' + item.id + '"></span></div>';
+    var ta = document.createElement("textarea");
+    ta.placeholder = "your answer";
+    ta.value = state[item.id] || "";
+    ta.addEventListener("input", function () {
+      state[item.id] = ta.value;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+      progress();
+    });
+    d.appendChild(ta);
+    var det = document.createElement("details");
+    det.innerHTML = '<summary style="cursor:pointer;font-size:13.5px;color:var(--accent);margin-top:10px">' +
+      "What a strong answer contains</summary><div class=\"rub\">" + item.r + "</div>";
+    d.appendChild(det);
+    elQ.appendChild(d);
+  });
+
+  function progress() {
+    var done = Q.filter(function (i) { return (state[i.id] || "").trim().length > 40; }).length;
+    var words = Q.reduce(function (a, i) { return a + (state[i.id] || "").split(/\s+/).filter(Boolean).length; }, 0);
+    document.getElementById("prog").innerHTML =
+      stat(done + " / " + Q.length, "answered", done === Q.length ? "good" : "") +
+      stat(words, "words written") +
+      stat(Q.length - done, "remaining");
+    Q.forEach(function (i) {
+      var el = document.getElementById("dot-" + i.id);
+      if (el) el.textContent = (state[i.id] || "").trim().length > 40 ? "✓" : "";
+    });
+  }
+
+  document.getElementById("gen").addEventListener("click", function () {
+    var lines = ["AI EVALS: WHAT I BUILT", "=".repeat(46), ""];
+    lines.push("A customer support agent for a fictional outdoor gear retailer, with a");
+    lines.push("deterministic world, computed ground truth, an authorization layer enforced");
+    lines.push("in code, and correctness gates wired into CI.");
+    lines.push("");
+    Q.forEach(function (i) {
+      var a = (state[i.id] || "").trim();
+      if (!a) return;
+      lines.push(i.q);
+      lines.push("-".repeat(Math.min(70, i.q.length)));
+      lines.push(a);
+      lines.push("");
+    });
+    var answered = Q.filter(function (i) { return (state[i.id] || "").trim(); }).length;
+    if (!answered) lines.push("(no answers written yet)");
+    var out = document.getElementById("out");
+    out.textContent = lines.join("\n");
+    out.style.display = "block";
+  });
+
+  document.getElementById("clear").addEventListener("click", function () {
+    state = {};
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    Array.prototype.forEach.call(elQ.querySelectorAll("textarea"), function (t) { t.value = ""; });
+    document.getElementById("out").style.display = "none";
+    progress();
+  });
+
+  progress();
+})();
+</script>
+</body>
+</html>

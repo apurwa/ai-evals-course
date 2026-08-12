@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L3 Synthetic Data and Scenarios</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="../index.html">Wayfarer Evals</a>
+    <span class="crumb"><a href="../index.html">Course</a> &rsaquo; Module 1 &rsaquo; L3</span>
+    <span class="spacer"></span>
+    <button class="theme-btn" id="theme">theme</button>
+  </div>
+</div>
+
+<div class="wrap narrow">
+
+  <header class="masthead">
+    <div class="kicker"><span>Lesson 3</span><span class="dot">/</span><span>Module 1</span><span class="dot">/</span><span>~50 min</span></div>
+    <h1>Synthetic Data and Scenarios</h1>
+    <p class="lede">
+      Generate a workload you control end to end, so that ground truth exists by construction
+      instead of by labelling.
+    </p>
+  </header>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">01</span> Objective</div>
+    <p>
+      You can build a test set whose correct answers are computed rather than guessed, and you
+      can say which parts of the input space it covers and which it does not.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">02</span> The failure this prevents</div>
+    <p>
+      Someone writes forty test cases by hand in an afternoon. They feel representative. They
+      are not: they are forty variations on the cases that came to mind, which are the cases
+      that are easy to think of, which are the cases the agent already handles.
+    </p>
+    <p>
+      The specific damage is silent. Your suite passes at 95 percent and the missing five
+      percent is not a hard slice of the problem, it is an <i>absent</i> slice. Nobody wrote a
+      test for a recalled item because nobody thought about recalls. The agent has never been
+      asked. You will find out from a customer.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">03</span> Concepts</div>
+    <dl class="defs">
+      <dt>Dimension-based generation</dt>
+      <dd>Enumerate the axes that change the correct answer (tier, condition, order status,
+        final sale, hazmat, recall), then generate the tuples rather than the sentences. The
+        wording is decoration; the tuple is the test.</dd>
+
+      <dt>Grounding in real rows</dt>
+      <dd>Every scenario points at a real order line in the database. This is what lets
+        <code>rules.py</code> compute the expected answer. A scenario invented in prose has no
+        computable correct answer and quietly becomes an opinion.</dd>
+
+      <dt>Coverage sampling</dt>
+      <dd>One scenario per distinct dimension profile. Answers "is there any case at all for
+        this combination". Used by L6.</dd>
+
+      <dt>Prevalence sampling</dt>
+      <dd>Sampled in proportion to how often combinations actually occur. Answers "what is the
+        success rate a customer would experience". Used for the confidence intervals in L5.</dd>
+
+      <dt>Boundary sampling</dt>
+      <dd>Deliberately oversampled at limits: day 29, day 30, day 31; one cent under the
+        approval limit, exactly on it, one cent over. Answers "does the rule fire in the right
+        place".</dd>
+
+      <dt>Theoretical saturation</dt>
+      <dd>Borrowed from qualitative research and used properly in L4. Here it is the reason to
+        stop generating: when new scenarios stop producing new dimension profiles, more
+        scenarios buy you sample size, not coverage.</dd>
+    </dl>
+
+    <div class="note warn">
+      <h4>These three are not interchangeable, and mixing them up is the classic error</h4>
+      <p style="font-size:14.5px">
+        A coverage-sampled suite tells you nothing about your real success rate, because it
+        deliberately over-represents rare cases. A prevalence-sampled suite will happily
+        contain zero recalled items, because recalls are rare, and will therefore report
+        excellent health while an entire safety path goes untested. You need both, kept
+        separate, and labelled. Every scenario in this repository carries a
+        <code>sampling</code> field for exactly this reason.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">04</span> Mental model</div>
+    <pre><code>rulebook allows        480 combinations   (6 tiers x conditions x statuses x 3 flags)
+world produces         115 combinations   <-- the rest cannot occur
+scenarios sample       115 combinations   <-- full coverage of what exists
+
+the 365 difference is not a bug in the suite.
+it is the set of questions your test data can never ask.
+knowing the number is the deliverable.</code></pre>
+    <p>
+      Most teams never compute the middle line. They compare the bottom line to their own
+      expectations and conclude they have good coverage, which is true and useless.
+    </p>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">05</span> Browser lab</div>
+    <div class="card">
+      <div class="kicker" style="margin-bottom:10px"><span>Lab 3</span><span class="dot">/</span><span>no install</span></div>
+      <h3 style="margin-bottom:8px">Coverage grid and the missing combinations</h3>
+      <p style="color:var(--text-2);font-size:14.5px">
+        Explore all 115 dimension profiles the world produces, filter by axis, and find the
+        combinations that do not exist. Then a sampling exercise: pick which strategy answers
+        each of five real questions a stakeholder might ask. Getting these wrong is how suites
+        end up measuring the wrong thing confidently.
+      </p>
+      <p style="margin-top:16px"><a class="btn" href="../labs/03-coverage.html">Open the lab</a></p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">06</span> Local lab</div>
+    <pre><code>python scripts/build_scenarios.py     # regenerate all 650
+python scripts/check_coverage.py      # is every failure mode reachable?</code></pre>
+    <p>
+      Then break it on purpose. In <code>data/world/facts.yaml</code>, set
+      <code>generation.edge_case_targets.recalled_item_orders</code> to <code>0</code> and
+      rebuild with <code>make world &amp;&amp; make check</code>.
+    </p>
+    <p>
+      The coverage gate should fail and name <code>item_recalled</code> as unreachable. That is
+      the guard working: a whole safety path just vanished from the test suite and nothing else
+      in the system noticed or cared. Put the value back.
+    </p>
+    <div class="note">
+      <h4>Where a model helps, and where it does not</h4>
+      <p style="font-size:14.5px">
+        Generating the tuples is deterministic code, because the tuples are the test and must
+        be exhaustive. A model is genuinely useful for the <i>wording</i>: paraphrasing one
+        scenario into twenty voices, registers, and levels of confusion. Note the split. The
+        model varies what does not matter to correctness, and code owns what does.
+      </p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">07</span> Traps</div>
+    <ul class="tight">
+      <li><b>Check that your expected answers are computed, not written.</b> If a human typed the
+        expected output, you have two systems that can be wrong and no way to tell which is.</li>
+      <li><b>Check whether your generator can produce the case you are worried about.</b> If it
+        cannot, your suite will never fail on it, no matter how large you make it.</li>
+      <li><b>Check that you know which sampling strategy each number came from.</b> A success
+        rate from a coverage-sampled suite is not a success rate.</li>
+      <li><b>Check for a frozen clock.</b> Any scenario whose correct answer depends on today's
+        date will silently change meaning, and your regressions will look like model drift.</li>
+      <li><b>Check that synthetic phrasing is not uniformly polite.</b> Real customers write in
+        fragments, with typos, mid-complaint, and about two orders at once.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label"><span class="num">08</span> Self-check</div>
+    <ul class="tight">
+      <li>Why does every scenario point at a real database row rather than describing one?</li>
+      <li>Your suite is 100 percent coverage-sampled and reports 88 percent. What can you tell a
+        product manager about the experience customers are having? </li>
+      <li>Recalls are 1.5 percent of orders. Under prevalence sampling, how many recall
+        scenarios would you expect in a 200-case suite, and why is that a problem?</li>
+      <li>Which part of scenario generation should a language model do, and which part must it
+        not?</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="02-evaluability.html">&larr; L2 Evaluability</a>
+    <a href="04-error-analysis.html">L4 Error Analysis &rarr;</a>
+  </div>
+  <footer>Method credit: <b>AI Evals for Engineers &amp; PMs</b> by Hamel Husain and Shreya Shankar.</footer>
+</div>
+
+<script src="../assets/theme.js"></script>
+</body>
+</html>
