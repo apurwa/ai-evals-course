@@ -17,3 +17,8 @@ data/world/wayfarer.db
 # ships with the course lives under docs/data/ and IS committed.
 runs/
 *.local.json
+
+# Traces from your own paid corpus run. Yours, not the course's: they cost you
+# money, they are large, and they are specific to the model you ran. The
+# committed lab data under docs/data/ is generated for free by `make check`.
+data/corpus/

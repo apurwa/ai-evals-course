@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world scenarios check check-coverage check-permissions check-agent seed-traces check-site site clean
+.PHONY: help world scenarios estimate smoke corpus check check-coverage check-permissions check-agent seed-traces check-site site clean
 
 help:
 	@echo "Wayfarer AI Evals Course"
@@ -9,6 +9,9 @@ help:
 	@echo "  make world       rebuild the world database from facts.yaml (no API key)"
 	@echo "  make scenarios   regenerate the 650 scenarios (no API key)"
 	@echo "  make check       run every correctness gate (no API key)"
+	@echo "  make estimate    forecast what a corpus run would cost (no API key)"
+	@echo "  make smoke       10 scenarios against a real model (needs a key, cents)"
+	@echo "  make corpus      the full corpus (needs a key, SPENDS MONEY)"
 	@echo "  make site        serve docs/ at http://localhost:8000"
 	@echo "  make clean       remove generated artifacts"
 	@echo ""
@@ -23,6 +26,20 @@ site:
 
 world:
 	$(PY) data/world/build_world.py
+
+# The only targets that cost money. estimate and smoke exist so that nobody's
+# first paid command is the expensive one: a prompt bug found on scenario 3
+# costs a cent, and the same bug found on scenario 650 costs the whole run.
+estimate:
+	$(PY) scripts/run_corpus.py --estimate
+
+smoke:
+	$(PY) scripts/run_corpus.py --limit 10 --max-usd 0.50
+
+corpus:
+	@echo "This spends real money. Ctrl-C now if you have not run 'make estimate' and 'make smoke'."
+	@echo ""
+	$(PY) scripts/run_corpus.py --max-usd 10.00
 
 scenarios:
 	$(PY) scripts/build_scenarios.py
