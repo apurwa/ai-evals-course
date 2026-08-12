@@ -153,14 +153,22 @@
     });
   });
 
-  var W=460,H=260,P=42;
+  // Top margin is 30 rather than 16 so the "accuracy" axis title has somewhere
+  // to sit. At 16 it landed exactly on the 1.0 gridline label.
+  var W=460,H=260,P=42,TOP=30;
   var maxC = Math.max.apply(null, CF.map(function(c){return c.cost_per_1k;}));
   function X(v){ return P + (W-P-16) * v / (maxC*1.05); }
-  function Y(v){ return H-P - (H-P-16) * (v-0.4)/0.6; }
+  function Y(v){ return H-P - (H-P-TOP) * (v-0.4)/0.6; }
   var grid = "";
   [0.5,0.6,0.7,0.8,0.9,1.0].forEach(function(v){
     grid += '<line class="grid" x1="'+P+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-8)+'" y2="'+Y(v).toFixed(1)+'"/>' +
             '<text class="lbl" x="8" y="'+(Y(v)+3).toFixed(1)+'">'+v.toFixed(1)+'</text>';
+  });
+  // Cost ticks. Without them the horizontal axis is unreadable and "which of
+  // these is actually expensive" has to be read off the table instead.
+  [0, 0.25, 0.5, 0.75, 1].forEach(function (f) {
+    var v = maxC * 1.05 * f;
+    grid += '<text class="lbl" x="'+(X(v)-8).toFixed(1)+'" y="'+(H-P+13)+'">$'+v.toFixed(0)+'</text>';
   });
   var pts = CF.map(function (c) {
     return '<circle class="dot' + (c.dominated ? " sig" : "") + '" cx="' + X(c.cost_per_1k).toFixed(1) +
@@ -171,8 +179,8 @@
   document.getElementById("chart").innerHTML = grid +
     '<line class="axis" x1="'+P+'" y1="'+(H-P)+'" x2="'+(W-8)+'" y2="'+(H-P)+'"/>' +
     '<path class="ln" d="'+path+'"/>' + pts +
-    '<text class="lbl" x="'+(W/2-30)+'" y="'+(H-8)+'">cost per 1k runs (illustrative)</text>' +
-    '<text class="lbl" x="8" y="14">accuracy</text>';
+    '<text class="lbl" x="'+(W/2-30)+'" y="'+(H-6)+'">cost per 1k runs (illustrative)</text>' +
+    '<text class="lbl" x="8" y="12">accuracy</text>';
 
   document.getElementById("cfgs").innerHTML = CF.map(function (c) {
     return '<div class="cfg"><span>' + esc(c.name) + '<br><span style="font-size:12px;color:var(--text-3)">' +
