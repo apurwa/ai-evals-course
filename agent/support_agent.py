@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "agent"))
 sys.path.insert(0, str(ROOT / "data" / "world"))
 
+from langfuse_sink import get_sink  # noqa: E402
 from toolset import Session, ToolRegistry  # noqa: E402
 from tracing import ModelPricing, Trace, prompt_hash  # noqa: E402
 
@@ -177,6 +178,7 @@ def run_scenario(
     model: str = DEFAULT_MODEL,
     facts: dict | None = None,
     max_steps: int = MAX_STEPS,
+    sink: Any = None,
 ) -> Trace:
     facts = facts or yaml.safe_load(FACTS_PATH.read_text())
     pricing = load_pricing(model)
@@ -187,7 +189,13 @@ def run_scenario(
         metadata={"kind": scenario.get("kind"), "sampling": scenario.get("sampling"),
                   "order_id": scenario.get("order_id"),
                   "order_item_id": scenario.get("order_item_id")},
+        sink=sink,
     )
+    # Build one sink and pass it in, rather than letting run_scenario make its
+    # own: a client per scenario would mean a connection and an auth round trip
+    # per scenario, which is a lot of overhead to observe a corpus run.
+    if sink is not None:
+        sink.set_input(trace, scenario["message"])
     session = Session(role, facts, trace)
     registry = ToolRegistry(session)
     tools = registry.schemas_for_role()
@@ -288,6 +296,17 @@ def selftest() -> int:
     scenario = dict(support[0], id="selftest-01", order_item_id=item_id, role="support")
     failures: list[str] = []
 
+    # None unless LANGFUSE_TRACING=1, so the default selftest is untouched.
+    # When it is set, these six runs are driven by ScriptedClient against the
+    # real loop, gate and database, which means a full set of traces lands in
+    # Langfuse without an API key and without spending anything. That includes
+    # the denial and the step-exhaustion cases, which are the two most worth
+    # looking at in a trace viewer and the two hardest to produce on demand.
+    sink = get_sink()
+    if sink is not None:
+        print("langfuse: mirroring these runs to "
+              f"{os.environ.get('LANGFUSE_HOST', 'http://localhost:3000')}")
+
     def check(label: str, ok: bool) -> None:
         print(f"  {'ok      ' if ok else 'FAILED  '} {label}")
         if not ok:
@@ -302,7 +321,7 @@ def selftest() -> int:
                          "arguments": {"order_item_id": item_id,
                                        "amount_cents": min(good, 20000)}}]},
         {"content": "Refund issued."},
-    ]), facts=facts, model="gpt-4.1-mini")
+    ]), facts=facts, model="gpt-4.1-mini", sink=sink)
     check("trace has a session root", t.spans[0].kind == "session")
     check("three model calls recorded", t.totals["model_calls"] == 3)
     check("two tool calls recorded", t.totals["tool_calls"] == 2)
@@ -321,7 +340,7 @@ def selftest() -> int:
         {"tool_calls": [{"name": "issue_refund",
                          "arguments": {"order_item_id": item_id, "amount_cents": 500000}}]},
         {"content": "I could not process that."},
-    ]), facts=facts, model="gpt-4.1-mini")
+    ]), facts=facts, model="gpt-4.1-mini", sink=sink)
     denied = [s for s in t2.spans if s.status == "denied"]
     check("oversized refund denied", len(denied) == 1)
     check("denial recorded on the trace", t2.totals["permission_denials"] == 1)
@@ -334,7 +353,7 @@ def selftest() -> int:
         {"tool_calls": [{"name": "issue_refund",
                          "arguments": {"order_item_id": item_id, "amount_cents": 100}}]},
         {"content": "Not permitted."},
-    ]), facts=facts, model="gpt-4.1-mini")
+    ]), facts=facts, model="gpt-4.1-mini", sink=sink)
     check("analyst refund denied", t3.totals["permission_denials"] == 1)
     reg_role = [s for s in t3.spans if s.status == "denied"][0].attributes.get("denied_reason")
     check("denied for role, not amount", reg_role == "role_not_permitted")
@@ -350,7 +369,7 @@ def selftest() -> int:
         {"tool_calls": [{"name": "create_return_label",
                          "arguments": {"order_item_id": haz, "method": "air"}}]},
         {"content": "done"},
-    ]), facts=facts, model="gpt-4.1-mini")
+    ]), facts=facts, model="gpt-4.1-mini", sink=sink)
     check("air label on hazmat denied", t4.totals["permission_denials"] == 1)
 
     # 5. Progressive tool disclosure.
@@ -373,10 +392,18 @@ def selftest() -> int:
     print("\nstep budget")
     t6 = run_scenario(dict(scenario, id="selftest-06"), ScriptedClient([
         {"tool_calls": [{"name": "get_policy", "arguments": {"policy_key": "returns"}}]},
-    ]), facts=facts, model="gpt-4.1-mini", max_steps=3)
+    ]), facts=facts, model="gpt-4.1-mini", max_steps=3, sink=sink)
     check("exhaustion recorded as an event",
           any(e.name == "max_steps_exhausted" for e in t6.spans[0].events))
     check("no final response when exhausted", t6.final_response is None)
+
+    # Batched telemetry is lost if the process exits before the batch is sent,
+    # which is the usual reason a short script shows nothing in the UI.
+    if sink is not None:
+        sink.flush()
+        print(f"\nlangfuse: {sink.traces} traces flushed. "
+              "Ingestion is queued, so give it a second, then open "
+              f"{os.environ.get('LANGFUSE_HOST', 'http://localhost:3000')}")
 
     print()
     if failures:

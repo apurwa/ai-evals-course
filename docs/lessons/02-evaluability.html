@@ -135,11 +135,45 @@ python scripts/build_redteam.py            # 15 attacks, real gate, real verdict
       <code>prompt_hash</code>, and work out which of the questions above becomes unanswerable.
     </p>
     <p>
-      For the full backend, <code>pip install -r requirements-tracing.txt</code> and bring up
-      Langfuse from <code>infra/</code>. Install it into a virtualenv; it pins
-      <code>opentelemetry</code> and <code>protobuf</code> tightly enough to disturb anything
-      sharing the environment.
+      Then put those traces in a real backend. This needs Docker, and it costs nothing.
     </p>
+    <pre><code>python3 -m venv .venv &amp;&amp; source .venv/bin/activate   # do not skip this
+pip install -r requirements-tracing.txt
+
+make trace-up      # self-hosted Langfuse, pre-provisioned, ~2GB on first pull
+make trace-demo    # five real traces, no API key, no spend</code></pre>
+    <p>
+      Sign in at <code>localhost:3000</code> with <code>evals@wayfarer.local</code> and
+      <code>wayfarer-local-dev</code>. The demo runs the selftest, which drives the real loop,
+      the real gate and the real database with a scripted client, so no model is called and
+      nothing is spent, but the spans, the denials and the refund amounts are genuine. The one
+      thing it cannot show you is latency: every span is under about three milliseconds, because
+      a scripted client returns instantly and there is nothing to wait on. The shape is honest,
+      the timings are not representative. For a waterfall worth reading, run
+      <code>LANGFUSE_TRACING=1 python scripts/run_corpus.py --limit 10</code> against a real
+      model. Open
+      <code>selftest-02</code>, where a $5,000 refund is refused, and <code>selftest-06</code>,
+      which ran out of steps and has no final answer.
+    </p>
+    <p>
+      Two things to notice, because both are design decisions you will have to make yourself.
+      The denial is recorded at level <code>WARNING</code>, not <code>ERROR</code>: the system
+      did exactly what it was built to do, and filing that under errors means it gets filtered
+      away with the noise. And <code>agent/langfuse_sink.py</code> mirrors spans as they open
+      rather than uploading the finished trace, because replaying a finished trace into an
+      OpenTelemetry backend opens every span at the same instant and flattens the timeline you
+      came for.
+    </p>
+    <div class="note">
+      <h4>Use a virtualenv, and mean it</h4>
+      <p style="font-size:14.5px">
+        The Langfuse client pins <code>opentelemetry</code> and <code>protobuf</code> tightly
+        enough to upgrade them for everything else sharing the environment. Installing it into
+        a base conda environment is how you discover which of your unrelated projects depended
+        on the old versions. The requirements are split into three files specifically so this
+        one stays quarantined.
+      </p>
+    </div>
   </div>
 
   <div class="slot">

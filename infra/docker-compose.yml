@@ -1,0 +1,213 @@
+# Langfuse, self-hosted, for Lesson 2.
+#
+#     make trace-up        bring it up and wait for health
+#     make trace-demo      run the agent and watch traces land (no API key needed)
+#     make trace-down      stop it, keep the data
+#     make trace-nuke      stop it and delete the volumes
+#
+# Adapted from the official compose at
+# https://github.com/langfuse/langfuse (33k stars, MIT). The cloud-provider
+# options (Azure Blob, OCI, Redis TLS, SMTP, batch export) are dropped because
+# none of them apply to a laptop. Everything required is kept.
+#
+# ---------------------------------------------------------------------------
+# THE SECRETS BELOW ARE FAKE AND ARE COMMITTED ON PURPOSE.
+#
+# This stack binds to localhost and exists to be thrown away. Committing the
+# dev keys is what makes `make trace-up` work on a clean clone with no setup
+# ritual. Do not copy this file to anything reachable from a network, and do
+# not reuse these values anywhere that matters.
+# ---------------------------------------------------------------------------
+#
+# Why five services for one UI: langfuse-web serves the app, langfuse-worker
+# consumes the ingestion queue, postgres holds config and users, clickhouse
+# holds the traces (columnar, because trace queries are analytical), redis is
+# the queue between web and worker, and minio is S3-compatible blob storage for
+# large payloads. Traces go in via the queue, not straight to the database,
+# which is why a trace can take a second or two to appear.
+
+name: wayfarer-langfuse
+
+x-langfuse-env: &langfuse-env
+  # Core
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+  SALT: wayfarer-local-dev-salt
+  # Quoted, and it has to be. Unquoted, YAML reads a run of digits as a number
+  # and this 64-character key reaches the container as "0", which fails
+  # validation with "must be 256 bits" and crashloops the worker.
+  ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+  TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+  NEXTAUTH_URL: http://localhost:${LANGFUSE_PORT:-3000}
+
+  # ClickHouse holds the traces.
+  CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+  CLICKHOUSE_URL: http://clickhouse:8123
+  CLICKHOUSE_USER: clickhouse
+  CLICKHOUSE_PASSWORD: clickhouse
+  CLICKHOUSE_CLUSTER_ENABLED: "false"
+
+  # MinIO stands in for S3.
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: miniosecret
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: miniosecret
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+
+  # Redis is the ingestion queue.
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_AUTH: myredissecret
+
+services:
+  # -------------------------------------------------------------------------
+  # The app. Pre-provisioned so that a clean clone gets a working project with
+  # known keys, instead of a signup form and a copy-paste dance. The
+  # LANGFUSE_INIT_* variables are a first-boot bootstrap: they are read once
+  # when the database is empty and ignored on every later start, so editing
+  # them after the fact does nothing until you run `make trace-nuke`.
+  # -------------------------------------------------------------------------
+  langfuse-web:
+    image: docker.io/langfuse/langfuse:4
+    restart: always
+    depends_on: &langfuse-depends-on
+      postgres: {condition: service_healthy}
+      minio: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      clickhouse: {condition: service_healthy}
+    ports:
+      - "${LANGFUSE_PORT:-3000}:3000"
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: wayfarer-local-dev-nextauth-secret
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:${MINIO_PORT:-9090}
+
+      LANGFUSE_INIT_ORG_ID: wayfarer
+      LANGFUSE_INIT_ORG_NAME: Wayfarer Supply Co.
+      LANGFUSE_INIT_PROJECT_ID: wayfarer-evals
+      LANGFUSE_INIT_PROJECT_NAME: Wayfarer Support Agent
+      # These two are what agent/langfuse_sink.py authenticates with. They are
+      # also the defaults in infra/langfuse.env, so nothing has to be copied.
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-lf-wayfarer-local-dev-public
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-lf-wayfarer-local-dev-secret
+      LANGFUSE_INIT_USER_EMAIL: evals@wayfarer.local
+      LANGFUSE_INIT_USER_NAME: Evals Learner
+      LANGFUSE_INIT_USER_PASSWORD: wayfarer-local-dev
+
+    healthcheck:
+      # /api/public/health reports ready only once migrations have finished,
+      # which is what `make trace-up` waits on. Waiting on the port instead
+      # would return a 500 page and look like a broken install.
+      #
+      # `hostname -i`, not localhost and not 127.0.0.1. This is a Next.js
+      # standalone server: it binds to $HOSTNAME, which in a container is the
+      # eth0 address, so nothing is listening on loopback at all. Checking
+      # loopback fails forever against a server that is serving fine, which
+      # then blocks anything waiting on service_healthy.
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://$$(hostname -i):3000/api/public/health || exit 1"]
+      interval: 5s
+      # 10s, because the first check after boot routinely takes longer than 5
+      # while the app is still warming, and a timeout there reads as a failure.
+      timeout: 10s
+      retries: 40
+      start_period: 20s
+
+  langfuse-worker:
+    image: docker.io/langfuse/langfuse-worker:4
+    restart: always
+    depends_on: *langfuse-depends-on
+    ports:
+      - "127.0.0.1:3030:3030"
+    environment: *langfuse-env
+
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:25.12
+    restart: always
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    ports:
+      - "127.0.0.1:${CLICKHOUSE_PORT:-8123}:8123"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 1s
+
+  minio:
+    image: docker.io/minio/minio
+    restart: always
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniosecret
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9090}:9000"
+      - "127.0.0.1:9091:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 1s
+
+  redis:
+    image: docker.io/redis:7
+    restart: always
+    command: >
+      --requirepass myredissecret
+      --maxmemory-policy noeviction
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  postgres:
+    image: docker.io/postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    # Bound to localhost on an off-default port, because 5432 is very often
+    # already taken by a real postgres and the failure reads as a Langfuse bug.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  clickhouse_logs:
+  minio_data:
+  redis_data:

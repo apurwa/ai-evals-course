@@ -1,7 +1,10 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world scenarios estimate smoke corpus check check-coverage check-permissions check-agent seed-traces check-site site clean
+.PHONY: help world scenarios estimate smoke corpus check check-coverage check-permissions check-agent seed-traces check-site site clean trace-up trace-demo trace-down trace-nuke trace-logs
+
+COMPOSE ?= docker compose -f infra/docker-compose.yml
+LANGFUSE_URL ?= http://localhost:3000
 
 help:
 	@echo "Wayfarer AI Evals Course"
@@ -14,6 +17,12 @@ help:
 	@echo "  make corpus      the full corpus (needs a key, SPENDS MONEY)"
 	@echo "  make site        serve docs/ at http://localhost:8000"
 	@echo "  make clean       remove generated artifacts"
+	@echo ""
+	@echo "  L2 tracing backend (needs Docker, no API key, costs nothing)"
+	@echo "  make trace-up    start Langfuse and wait until it is ready"
+	@echo "  make trace-demo  run the agent and send five real traces to it"
+	@echo "  make trace-down  stop it, keep the data"
+	@echo "  make trace-nuke  stop it and delete the volumes"
 	@echo ""
 	@echo "Track A needs none of this. Open docs/index.html in a browser."
 
@@ -90,6 +99,50 @@ check-permissions:
 	@echo ""
 	@echo "=== drift: do rules.py and permissions.py agree? ==="
 	@$(PY) scripts/check_permissions.py
+
+# ---------------------------------------------------------------------------
+# L2: the tracing backend
+#
+# Not part of `make check`. The gates must keep running on a machine with no
+# Docker, and a correctness suite that depends on six containers being healthy
+# is a suite people stop running.
+# ---------------------------------------------------------------------------
+
+trace-up:
+	@command -v docker >/dev/null 2>&1 || { echo "docker not found. Install Docker Desktop, or skip this lesson's backend; the trace model in agent/tracing.py is the part that matters."; exit 1; }
+	@docker info >/dev/null 2>&1 || { echo "docker is installed but not running. Start Docker Desktop and try again."; exit 1; }
+	$(COMPOSE) up -d
+	@echo ""
+	@echo "waiting for langfuse to finish migrating (first run takes a minute)"
+	@for i in $$(seq 1 90); do \
+		if curl -fsS $(LANGFUSE_URL)/api/public/health >/dev/null 2>&1; then \
+			echo ""; echo "langfuse is up at $(LANGFUSE_URL)"; \
+			echo "  sign in with  evals@wayfarer.local / wayfarer-local-dev"; \
+			echo "  then:  make trace-demo"; \
+			exit 0; \
+		fi; \
+		printf "."; sleep 2; \
+	done; \
+	echo ""; echo "timed out. check: make trace-logs"; exit 1
+
+# The demo costs nothing. The selftest drives the real control loop, the real
+# permission layer and the real database with a scripted client, so the traces
+# are genuine even though no model was called. That includes a denial and a
+# step-budget exhaustion, which are the two most instructive things to look at
+# in a trace viewer and the two most annoying to reproduce on demand.
+trace-demo:
+	@curl -fsS $(LANGFUSE_URL)/api/public/health >/dev/null 2>&1 || { echo "langfuse is not responding at $(LANGFUSE_URL). Run: make trace-up"; exit 1; }
+	@$(PY) -c "import langfuse" 2>/dev/null || { echo "the langfuse client is not installed. In a virtualenv: pip install -r requirements-tracing.txt"; exit 1; }
+	LANGFUSE_TRACING=1 $(PY) agent/support_agent.py --selftest
+
+trace-down:
+	$(COMPOSE) down
+
+trace-nuke:
+	$(COMPOSE) down -v
+
+trace-logs:
+	$(COMPOSE) logs --tail=80 langfuse-web langfuse-worker
 
 clean:
 	rm -f data/world/wayfarer.db data/world/world_stats.json

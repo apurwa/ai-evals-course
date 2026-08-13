@@ -10,8 +10,17 @@
 # it, so the split is here to make the venv step unavoidable rather than
 # advisory.
 #
-# The server itself runs in Docker. See infra/.
+# The server itself runs in Docker. See infra/docker-compose.yml, or just run
+# `make trace-up`.
 
 -r requirements-core.txt
 
-langfuse>=2.50.0
+# Pinned to the v4 line, not >=2, and the difference is not cosmetic. Langfuse
+# rewrote the SDK on top of OpenTelemetry at v3, so the v2 calls (langfuse.trace(),
+# .generation(), .span()) no longer exist. An open range like >=2.50.0 resolves to
+# the newest v4 anyway and then fails at the first call, which reads as a broken
+# install rather than as the version mismatch it actually is.
+#
+# agent/langfuse_sink.py is written against v4: start_observation(as_type=...),
+# update_trace(), usage_details, cost_details.
+langfuse>=4,<5

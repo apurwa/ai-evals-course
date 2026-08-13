@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import threading
 from collections import Counter
@@ -44,6 +45,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "agent"))
 sys.path.insert(0, str(ROOT / "data" / "world"))
 
+from langfuse_sink import get_sink  # noqa: E402
 from support_agent import (  # noqa: E402
     DEFAULT_MODEL, MAX_STEPS, OpenAIClient, load_pricing, run_scenario,
 )
@@ -138,6 +140,15 @@ def main() -> int:
     client = OpenAIClient()
     pricing = load_pricing(args.model)
 
+    # None unless LANGFUSE_TRACING=1. One sink shared by every worker: the
+    # Langfuse client is thread safe, span ids are unique, and each observation
+    # is nested by explicit parent rather than by ambient context, so traces
+    # from concurrent workers do not braid together.
+    sink = get_sink()
+    if sink is not None:
+        print(f"langfuse: mirroring to "
+              f"{os.environ.get('LANGFUSE_HOST', 'http://localhost:3000')}")
+
     lock = threading.Lock()
     spent = [0.0]
     stop = threading.Event()
@@ -149,7 +160,7 @@ def main() -> int:
             return
         try:
             trace = run_scenario(sc, client, model=args.model, facts=facts,
-                                 max_steps=args.max_steps)
+                                 max_steps=args.max_steps, sink=sink)
         except Exception as e:  # noqa: BLE001
             # One scenario failing must not lose the traces already paid for.
             with lock:
@@ -190,6 +201,11 @@ def main() -> int:
         print("\ninterrupted; traces so far are saved and a rerun will resume", file=sys.stderr)
     finally:
         fh.close()
+        # In the finally block on purpose. An interrupted run has already paid
+        # for the traces it produced, so losing their telemetry to an unflushed
+        # batch would be a second, avoidable loss.
+        if sink is not None:
+            sink.flush()
 
     # ---- smoke report
     traces = [json.loads(l) for l in out_path.read_text().splitlines() if l.strip()]

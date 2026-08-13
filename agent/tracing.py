@@ -135,7 +135,14 @@ class Trace:
     """
 
     def __init__(self, *, scenario_id: str, role: str, model: str,
-                 metadata: dict[str, Any] | None = None):
+                 metadata: dict[str, Any] | None = None,
+                 sink: Any = None):
+        # `sink` mirrors spans into an external backend as they open and close.
+        # None in every default path, including the corpus builders, so what
+        # gets written to disk is identical whether or not Langfuse is running.
+        # See agent/langfuse_sink.py for why mirroring is live rather than an
+        # upload after the fact.
+        self._sink = sink
         self.trace_id = new_id()
         self.scenario_id = scenario_id
         self.role = role
@@ -153,6 +160,8 @@ class Trace:
         self.spans.append(root)
         self._stack.append(root.span_id)
         self.root_id = root.span_id
+        if self._sink is not None:
+            self._sink.on_span_open(self, root)
 
     # -- span lifecycle ----------------------------------------------------
 
@@ -160,6 +169,8 @@ class Trace:
         s = Span(new_id(), self._stack[-1], name, kind, _now_ms(), attributes=attributes)
         self.spans.append(s)
         self._stack.append(s.span_id)
+        if self._sink is not None:
+            self._sink.on_span_open(self, s)
         return s
 
     def close(self, span: Span, status: SpanStatus = "ok") -> None:
@@ -167,6 +178,11 @@ class Trace:
         span.status = status
         if self._stack and self._stack[-1] == span.span_id:
             self._stack.pop()
+        if self._sink is not None:
+            # finish() sweeps anything still open, so a span can reach here
+            # twice. The sink drops its handle on first close and ignores the
+            # second, rather than ending the same observation twice.
+            self._sink.on_span_close(self, span)
 
     class _SpanCtx:
         def __init__(self, trace: "Trace", span: Span):
@@ -212,6 +228,8 @@ class Trace:
         root.ended_ms = self.ended_ms
         if error:
             root.status = "error"
+        if self._sink is not None:
+            self._sink.on_finish(self)
 
     # -- rollups -----------------------------------------------------------
 

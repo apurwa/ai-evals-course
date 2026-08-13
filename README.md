@@ -18,6 +18,7 @@ Built in the open, so here is where it actually stands.
 | Support agent, trace schema, agent selftest | Built, runs with no API key |
 | **All 10 lessons and all 10 browser labs** | **Written, work with no install** |
 | Local (Track B) labs | Commands documented in each lesson |
+| L2 tracing backend, self-hosted Langfuse | Built. Needs Docker, no API key, costs nothing |
 | Model-generated trace corpus | Needs an API key run |
 
 **One thing to be clear about.** The browser labs run on a corpus of 120 traces
@@ -120,8 +121,32 @@ agent/         The support agent, its SPEC.md, tools, and permission layer.
 data/world/    facts.yaml, the world generator, and rules.py (ground truth).
 evals/         Judges, code checks, splits, harness.
 scripts/       Correctness gates.
-infra/         Docker compose for Langfuse and ClickHouse.
+infra/         Self-hosted Langfuse for L2. Optional. See infra/README.md.
 ```
+
+## Seeing traces in a real backend
+
+Optional, needs Docker, costs nothing.
+
+```bash
+source .venv/bin/activate
+pip install -r requirements-tracing.txt
+make trace-up      # Langfuse at localhost:3000, pre-provisioned
+make trace-demo    # five real traces, no API key
+```
+
+`make trace-demo` runs the agent selftest, which drives the real loop, the real
+gate, and the real database with a scripted client. No model is called and
+nothing is spent, but the spans, denials, and refund amounts are genuine. Two of
+the five are worth opening: a $5,000 refund refused by the gate, and a run that
+exhausted its step budget. It cannot show you latency, though, because a
+scripted client returns instantly; for that, run the corpus against a real model
+with `LANGFUSE_TRACING=1`.
+
+The sink is off unless `LANGFUSE_TRACING=1`, and it mirrors spans as they open
+rather than uploading a finished trace, because replaying a finished trace into
+an OpenTelemetry backend opens every span at once and destroys the timeline.
+`agent/tracing.py` stays the source of truth either way.
 
 Start with `agent/spec/SPEC.md`. Everything else is downstream of it.
 
