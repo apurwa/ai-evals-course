@@ -117,6 +117,9 @@ gap, live, is what Module 4 is for.
 
 ```
 docs/          Track A. The course site. No build step.
+docs/reference/  A living reference: notes, interview Q&A, and an annotated
+               resource list. Markdown sources rendered to offline HTML by
+               `make reference`; the sync is gated in `make check`.
 agent/         The support agent, its SPEC.md, tools, and permission layer.
 data/world/    facts.yaml, the world generator, and rules.py (ground truth).
 evals/         Judges, code checks, splits, harness.
