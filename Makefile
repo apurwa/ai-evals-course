@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 PY ?= python3
 
-.PHONY: help world scenarios estimate smoke corpus check check-coverage check-permissions check-agent seed-traces check-site site clean trace-up trace-demo trace-down trace-nuke trace-logs
+.PHONY: help world scenarios estimate smoke corpus check check-coverage check-permissions check-agent seed-traces check-site check-reference reference site clean trace-up trace-demo trace-down trace-nuke trace-logs
 
 COMPOSE ?= docker compose -f infra/docker-compose.yml
 LANGFUSE_URL ?= http://localhost:3000
@@ -16,6 +16,7 @@ help:
 	@echo "  make smoke       10 scenarios against a real model (needs a key, cents)"
 	@echo "  make corpus      the full corpus (needs a key, SPENDS MONEY)"
 	@echo "  make site        serve docs/ at http://localhost:8000"
+	@echo "  make reference   render docs/reference/ notes from markdown to offline HTML"
 	@echo "  make clean       remove generated artifacts"
 	@echo ""
 	@echo "  L2 tracing backend (needs Docker, no API key, costs nothing)"
@@ -54,7 +55,7 @@ scenarios:
 	$(PY) scripts/build_scenarios.py
 
 # Every gate that runs without an API key. Wired into CI.
-check: world check-coverage check-permissions scenarios check-agent seed-traces check-site
+check: world check-coverage check-permissions scenarios check-agent seed-traces check-reference check-site
 	@echo ""
 	@echo "all gates passed"
 
@@ -89,6 +90,19 @@ check-site:
 	@echo ""
 	@echo "=== site: do the links resolve and the tags balance? ==="
 	@$(PY) scripts/check_site.py
+
+# Render the reference knowledge base (docs/reference/) from its markdown
+# sources into offline HTML and the GitHub README.
+reference:
+	$(PY) scripts/build_reference.py
+
+# A gate, not a build step: fails if the committed HTML no longer matches the
+# markdown it was rendered from, so a note edited without regenerating cannot
+# ship a stale offline page.
+check-reference:
+	@echo ""
+	@echo "=== reference: is the offline HTML in sync with the markdown? ==="
+	@$(PY) scripts/build_reference.py --check
 
 check-coverage:
 	@echo ""
